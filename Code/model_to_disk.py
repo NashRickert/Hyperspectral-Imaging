@@ -15,6 +15,7 @@ torch.backends.cudnn.benchmark = False
 state_dict = torch.load("temp_model")
 
 def to_file(name):
+    os.remove("../Weight_Binaries/" + name + ".bin")
     tensor = state_dict[name]
     arr = tensor.cpu().numpy()
     arr.tofile("../Weight_Binaries/" + name + ".bin")
