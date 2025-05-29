@@ -17,7 +17,7 @@ state_dict = torch.load("temp_model")
 def to_file(name):
     tensor = state_dict[name]
     arr = tensor.cpu().numpy()
-    arr.tofile(name + ".bin")
+    arr.tofile("../Weight_Binaries/" + name + ".bin")
     # with open('model.bin', 'wb') as f:
     #     f.write(arr.astype(np.float32).tobytes())
 
@@ -39,9 +39,10 @@ sys.stdout = log_file
 for name, tensor in state_dict.items():
     if "num_batches_tracked" in name:
         continue
-    # to_file(name)
+    to_file(name)
     # print(name, "\t", tensor.size())
-    print(name, "\t", tensor)
+    # print()
+    print(name, "\n", tensor)
 
 sys.stdout = stdout
 

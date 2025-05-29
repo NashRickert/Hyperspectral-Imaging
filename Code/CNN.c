@@ -4,12 +4,19 @@
 #include <assert.h>
 #include "CNN.h"
 
+#define BIN_PATH "../Weight_Binaries/"
+
 struct ParamInfo params[NUM_PARAMS];
 
 // Puts the weights associated with file_name.bin inside of the (appropriately sized) buffer
 // The size field is passed to make sure our date aligns with reality
 void put_weights(char *file_name, float *buf, int size) {
-    FILE *f = fopen(file_name, "rb");
+    // File name with the correct path to binaries
+    char *new_buf = (char *) malloc(strlen(BIN_PATH) + strlen(file_name) + 1);
+    memcpy(new_buf, BIN_PATH, strlen(BIN_PATH));
+    memcpy(new_buf + strlen(BIN_PATH), file_name, strlen(file_name) + 1);
+
+    FILE *f = fopen(new_buf, "rb");
     fseek(f, 0, SEEK_END);
     int alt_size = ftell(f) / sizeof(float);
     /* printf("altsize = %d, size = %d\n", alt_size, size); */
@@ -17,7 +24,9 @@ void put_weights(char *file_name, float *buf, int size) {
     rewind(f);
 
     fread(buf, sizeof(float), size, f);
+
     fclose(f);
+    free(new_buf);
 }
 
 int get_wgt_size(int dim_size, int *dimensions) {
