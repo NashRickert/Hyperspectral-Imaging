@@ -9,10 +9,12 @@
 
 struct ParamInfo params[NUM_PARAMS];
 
-// Puts the weights associated with file_name.bin inside of the (appropriately sized) buffer
-// The size field is passed to make sure our date aligns with reality
-void put_weights(char *file_name, float *buf, int size) {
-    // File name with the correct path to binaries
+/**
+ * @brief This function puts the weights associated with file_name.bin inside
+ * of the appropriately sized buffer
+ * Note that the size field is only passed as a sanity check for the size of our binaries
+ */
+static void put_weights(char *file_name, float *buf, int size) {
     char *new_buf = (char *) malloc(strlen(BIN_PATH) + strlen(file_name) + 1);
     memcpy(new_buf, BIN_PATH, strlen(BIN_PATH));
     memcpy(new_buf + strlen(BIN_PATH), file_name, strlen(file_name) + 1);
@@ -20,7 +22,6 @@ void put_weights(char *file_name, float *buf, int size) {
     FILE *f = fopen(new_buf, "rb");
     fseek(f, 0, SEEK_END);
     int alt_size = ftell(f) / sizeof(float);
-    /* printf("altsize = %d, size = %d\n", alt_size, size); */
     assert(alt_size == size);
     rewind(f);
 
@@ -30,290 +31,119 @@ void put_weights(char *file_name, float *buf, int size) {
     free(new_buf);
 }
 
-int get_wgt_size(int dim_size, int *dimensions) {
+/**
+ * @brief helper function which multiplies the elements of the shape to get the size of the weights arr
+ */
+static int get_wgt_size(struct Shape shape) {
     int size = 1;
-    for (int i = 0; i < dim_size; i++) {
-        size *= dimensions[i];
+    for (int i = 0; i < shape.len; i++) {
+        size *= shape.dim[i];
     }
     return size;
 }
 
-// Initializes the weights of each element of the params array
-void init_weights() {
+/**
+ * @brief Function which loops over the params array to initialize each of the weights
+ */
+static void init_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
         struct ParamInfo parameter = params[i];
         char *file_name = parameter.filename;
-        int wgt_size = get_wgt_size(parameter.dim_len, parameter.dimensions);
-        /* for (int j = 0; j < parameter.dim_len; j++) { */
-        /*     wgt_size *= parameter.dimensions[j]; */
-        /* } */
-        /* printf("file name: %s\n", parameter.filename); */
+        int wgt_size = get_wgt_size(parameter.shape);
         put_weights(file_name, parameter.weights, wgt_size);
     }
 }
 
-
-// Sets up the ParamInfo fields of the params array
-void init_params() {
-    int size;
-    int *dims;
-    float *weights;
-
-    // CONV10W
-    size = 5;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16, 1, 3, 3, 3}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16 * 3 * 3 * 3);
-    params[CONV10W_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.0.weight.bin"};
-
-    // CONV10B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV10B_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.0.bias.bin"};
-
-    // CONV12W
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV12W_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.2.weight.bin"};
-
-    // CONV12B
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV12B_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.2.bias.bin"};
-
-    // CONV12MEAN
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV12MEAN_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.2.running_mean.bin"};
-
-    // CONV12VAR
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV12VAR_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer1.2.running_var.bin"};
-
-    // CONV20W
-    size = 5;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16, 16, 3, 3, 3}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16 * 16 * 3 * 3 * 3);
-    params[CONV20W_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.0.weight.bin"};
-
-    // CONV20B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV20B_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.0.bias.bin"};
-
-    // CONV22W
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV22W_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.2.weight.bin"};
-
-    // CONV22B
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV22B_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.2.bias.bin"};
-
-    // CONV22MEAN
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV22MEAN_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.2.running_mean.bin"};
-
-    // CONV22VAR
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[CONV22VAR_IDX] = (struct ParamInfo){dims, size, weights, "conv_layer2.2.running_var.bin"};
-
-    // SCONV10W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {3200, 1, 5, 5}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 3200 * 5 * 5);
-    params[SCONV10W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.0.weight.bin"};
-
-    // SCONV10B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {3200}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 3200);
-    params[SCONV10B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.0.bias.bin"};
-
-    // SCONV12W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320, 3200, 1, 1}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320 * 3200);
-    params[SCONV12W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.2.weight.bin"};
-
-    // SCONV12B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV12B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.2.bias.bin"};
-
-    // SCONV14W
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV14W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.4.weight.bin"};
-
-    // SCONV14B
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV14B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.4.bias.bin"};
-
-    // SCONV14MEAN
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV14MEAN_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.4.running_mean.bin"};
-
-    // SCONV14VAR
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV14VAR_IDX] = (struct ParamInfo){dims, size, weights, "sepconv1.4.running_var.bin"};
-
-    // SCONV20W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320, 1, 3, 3}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320 * 3 * 3);
-    params[SCONV20W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.0.weight.bin"};
-
-    // SCONV20B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {320}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 320);
-    params[SCONV20B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.0.bias.bin"};
-
-    // SCONV22W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256, 320, 1, 1}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256 * 320);
-    params[SCONV22W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.2.weight.bin"};
-
-    // SCONV22B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV22B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.2.bias.bin"};
-
-    // SCONV24W
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV24W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.4.weight.bin"};
-
-    // SCONV24B
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV24B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.4.bias.bin"};
-
-    // SCONV24MEAN
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV24MEAN_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.4.running_mean.bin"};
-
-    // SCONV24VAR
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV24VAR_IDX] = (struct ParamInfo){dims, size, weights, "sepconv2.4.running_var.bin"};
-
-    // SCONV30W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256, 1, 3, 3}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256 * 3 * 3);
-    params[SCONV30W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.0.weight.bin"};
-
-    // SCONV30B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV30B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.0.bias.bin"};
-
-    // SCONV32W
-    size = 4;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256, 256, 1, 1}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256 * 256);
-    params[SCONV32W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.2.weight.bin"};
-
-    // SCONV32B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV32B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.2.bias.bin"};
-
-    // SCONV34W
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV34W_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.4.weight.bin"};
-
-    // SCONV34B
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV34B_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.4.bias.bin"};
-
-    // SCONV34MEAN
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV34MEAN_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.4.running_mean.bin"};
-
-    // SCONV34VAR
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 256);
-    params[SCONV34VAR_IDX] = (struct ParamInfo){dims, size, weights, "sepconv3.4.running_var.bin"};
-
-    // FC1W
-    size = 2;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16, 256}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16 * 256);
-    params[FC1W_IDX] = (struct ParamInfo){dims, size, weights, "fc1.weight.bin"};
-
-    // FC1B
-    size = 1;
-    dims = (int *) malloc(sizeof(int) * size);
-    memcpy(dims, (int[]) {16}, sizeof(int) * size);
-    weights = (float *) malloc(sizeof(float) * 16);
-    params[FC1B_IDX] = (struct ParamInfo){dims, size, weights, "fc1.bias.bin"};
+/**
+ * @brief Helper function which initializes a ParamInfo with the proper specification
+ */
+static void init_param(int idx, int *dims_array, int size, size_t weight_count, char *filename) {
+    int *dims = (int *) malloc(sizeof(int) * size);
+    memcpy(dims, dims_array, sizeof(int) * size);
+    float *weights = (float *) malloc(sizeof(float) * weight_count);
+    struct Shape shape = {dims, size};
+    params[idx] = (struct ParamInfo){shape, weights, filename};
 }
 
+
+// Sets up the ParamInfo fields of the params array
+/**
+ * @brief Initializes each element of the params array with the appropriate specification
+ * Uses the above helper function
+ */
+static void init_params() {
+    init_param(CONV10W_IDX, (int[]){16, 1, 3, 3, 3}, 5, 16 * 3 * 3 * 3, "conv_layer1.0.weight.bin");
+    init_param(CONV10B_IDX, (int[]){16}, 1, 16, "conv_layer1.0.bias.bin");
+
+    init_param(CONV12W_IDX, (int[]){16}, 1, 16, "conv_layer1.2.weight.bin");
+    init_param(CONV12B_IDX, (int[]){16}, 1, 16, "conv_layer1.2.bias.bin");
+    init_param(CONV12MEAN_IDX, (int[]){16}, 1, 16, "conv_layer1.2.running_mean.bin");
+    init_param(CONV12VAR_IDX, (int[]){16}, 1, 16, "conv_layer1.2.running_var.bin");
+
+    init_param(CONV20W_IDX, (int[]){16, 16, 3, 3, 3}, 5, 16 * 16 * 3 * 3 * 3, "conv_layer2.0.weight.bin");
+    init_param(CONV20B_IDX, (int[]){16}, 1, 16, "conv_layer2.0.bias.bin");
+
+    init_param(CONV22W_IDX, (int[]){16}, 1, 16, "conv_layer2.2.weight.bin");
+    init_param(CONV22B_IDX, (int[]){16}, 1, 16, "conv_layer2.2.bias.bin");
+    init_param(CONV22MEAN_IDX, (int[]){16}, 1, 16, "conv_layer2.2.running_mean.bin");
+    init_param(CONV22VAR_IDX, (int[]){16}, 1, 16, "conv_layer2.2.running_var.bin");
+
+    init_param(SCONV10W_IDX, (int[]){3200, 1, 5, 5}, 4, 3200 * 5 * 5, "sepconv1.0.weight.bin");
+    init_param(SCONV10B_IDX, (int[]){3200}, 1, 3200, "sepconv1.0.bias.bin");
+
+    init_param(SCONV12W_IDX, (int[]){320, 3200, 1, 1}, 4, 320 * 3200, "sepconv1.2.weight.bin");
+    init_param(SCONV12B_IDX, (int[]){320}, 1, 320, "sepconv1.2.bias.bin");
+
+    init_param(SCONV14W_IDX, (int[]){320}, 1, 320, "sepconv1.4.weight.bin");
+    init_param(SCONV14B_IDX, (int[]){320}, 1, 320, "sepconv1.4.bias.bin");
+    init_param(SCONV14MEAN_IDX, (int[]){320}, 1, 320, "sepconv1.4.running_mean.bin");
+    init_param(SCONV14VAR_IDX, (int[]){320}, 1, 320, "sepconv1.4.running_var.bin");
+
+    init_param(SCONV20W_IDX, (int[]){320, 1, 3, 3}, 4, 320 * 3 * 3, "sepconv2.0.weight.bin");
+    init_param(SCONV20B_IDX, (int[]){320}, 1, 320, "sepconv2.0.bias.bin");
+
+    init_param(SCONV22W_IDX, (int[]){256, 320, 1, 1}, 4, 256 * 320, "sepconv2.2.weight.bin");
+    init_param(SCONV22B_IDX, (int[]){256}, 1, 256, "sepconv2.2.bias.bin");
+
+    init_param(SCONV24W_IDX, (int[]){256}, 1, 256, "sepconv2.4.weight.bin");
+    init_param(SCONV24B_IDX, (int[]){256}, 1, 256, "sepconv2.4.bias.bin");
+    init_param(SCONV24MEAN_IDX, (int[]){256}, 1, 256, "sepconv2.4.running_mean.bin");
+    init_param(SCONV24VAR_IDX, (int[]){256}, 1, 256, "sepconv2.4.running_var.bin");
+
+    init_param(SCONV30W_IDX, (int[]){256, 1, 3, 3}, 4, 256 * 3 * 3, "sepconv3.0.weight.bin");
+    init_param(SCONV30B_IDX, (int[]){256}, 1, 256, "sepconv3.0.bias.bin");
+
+    init_param(SCONV32W_IDX, (int[]){256, 256, 1, 1}, 4, 256 * 256, "sepconv3.2.weight.bin");
+    init_param(SCONV32B_IDX, (int[]){256}, 1, 256, "sepconv3.2.bias.bin");
+
+    init_param(SCONV34W_IDX, (int[]){256}, 1, 256, "sepconv3.4.weight.bin");
+    init_param(SCONV34B_IDX, (int[]){256}, 1, 256, "sepconv3.4.bias.bin");
+    init_param(SCONV34MEAN_IDX, (int[]){256}, 1, 256, "sepconv3.4.running_mean.bin");
+    init_param(SCONV34VAR_IDX, (int[]){256}, 1, 256, "sepconv3.4.running_var.bin");
+
+    init_param(FC1W_IDX, (int[]){16, 256}, 2, 16 * 256, "fc1.weight.bin");
+    init_param(FC1B_IDX, (int[]){16}, 1, 16, "fc1.bias.bin");
+}
+
+/**
+ * @brief prints the weights in the params array so we can check against the weights from python
+ */
 void print_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
         struct ParamInfo parameter = params[i];
         printf("Parameter name: %s\n", parameter.filename);
-        int wgt_size = get_wgt_size(parameter.dim_len, parameter.dimensions);
+        int wgt_size = get_wgt_size(parameter.shape);
         for (int j = 0; j < wgt_size; j++) {
             printf("%f ", parameter.weights[j]);
         }
         printf("\n\n\n");
     }
+}
+
+/**
+ * @brief Does the full initialization. We don't want to expose the other functions out of this file
+ */
+void full_init() {
+    init_params();
+    init_weights();
 }

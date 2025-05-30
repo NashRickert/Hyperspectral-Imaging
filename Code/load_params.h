@@ -1,3 +1,5 @@
+#pragma once
+
 #define NUM_PARAMS 38
 
 #define CONV10W_IDX 0
@@ -39,9 +41,15 @@
 #define FC1W_IDX 36
 #define FC1B_IDX 37
 
+struct Shape {
+    int *dim;
+    int len;
+};
+
 struct ParamInfo {
-    int *dimensions;
-    int dim_len;     // The length of the dimensions array
+    struct Shape shape; // The shape of the weights array
+    /* int *dimensions; */
+    /* int dim_len;     // The length of the dimensions array */
     float *weights;  // Pointer to the malloced weights
     char *filename;
 };
@@ -49,8 +57,10 @@ struct ParamInfo {
 extern struct ParamInfo params[NUM_PARAMS];
 
 
-void put_weights(char *file_name, float *buf, int size);
-int get_wgt_size(int dim_size, int *dimensions);
-void init_weights();
-void init_params();
+
+/* void put_weights(char *file_name, float *buf, int size); */
+/* int get_wgt_size(int dim_size, int *dimensions); */
+/* void init_weights(); */
+/* void init_params(); */
 void print_weights();
+void full_init();
