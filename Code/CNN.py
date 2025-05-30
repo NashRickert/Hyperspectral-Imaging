@@ -145,6 +145,8 @@ class Hyper3DNetLite(nn.Module, ABC):
             self.fc1 = nn.Linear(256, self.classes)
 
     def forward(self, x):
+        # This is 128, 1, 200, 5, 5
+        # print("Data shape in forward: ", x.shape)
 
         # 3D Feature extractor
         x = self.conv_layer1(x)
@@ -279,6 +281,7 @@ class CNNTrainer():
                 # Get actual batches
                 trainxb = torch.from_numpy(trainx[inds]).float().to(self.device)
                 trainyb = torch.from_numpy(trainy[inds]).long().to(self.device)
+                # print("Shape of input data is ", trainxb.shape)
 
                 # zero the parameter gradients
                 self.model.optimizer.zero_grad()

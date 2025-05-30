@@ -53,3 +53,4 @@ void put_weights(char *file_name, float *buf, int size);
 int get_wgt_size(int dim_size, int *dimensions);
 void init_weights();
 void init_params();
+void print_weights();
