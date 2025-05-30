@@ -34,7 +34,6 @@ int get_idx(struct Shape shape, int *idxs) {
 
     int sum = 0;
     for (int i = 0; i < dim_len; i++) {
-        int recip = dim_len - i - 1;
         sum += prefixes[i] * idxs[i];
     }
 
@@ -45,7 +44,7 @@ int get_idx(struct Shape shape, int *idxs) {
 #define IN_SHAPE_LEN 5
 #define OUT_SHAPE_LEN 5
 
-static void print_buf(int *buf, int len) {
+void print_buf(int *buf, int len) {
     for (int i = 0; i < len; i++) printf("%d ", buf[i]);
     printf("\n\n");
 }
@@ -70,9 +69,9 @@ struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, in
     };
     out_shape.dim[0] = in_shape.dim[0];
     out_shape.dim[1] = out_channels;
-    out_shape.dim[2] = D;
-    out_shape.dim[3] = H;
-    out_shape.dim[4] = W;
+    out_shape.dim[2] = Dout;
+    out_shape.dim[3] = Hout;
+    out_shape.dim[4] = Wout;
     /* print_buf(out_shape, 5); */
     return out_shape;
 }

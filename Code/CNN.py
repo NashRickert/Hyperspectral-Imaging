@@ -319,8 +319,21 @@ class CNNTrainer():
             self.model.network.eval()
             Teva = np.ceil(1.0 * len(valx) / batch_size).astype(np.int32)
             indtest = np.arange(len(valx))
+            try:
+                os.remove('../Weight_Binaries/test_data.bin')
+            except:
+                pass
             for b in range(Teva):
                 inds = indtest[b * batch_size:(b + 1) * batch_size]
+                temp = valx[inds]
+                with open('../Weight_Binaries/test_data.bin', 'ab') as data_file:
+                    data_file.write(temp.astype(np.float32).tobytes())
+
+                    
+                
+                temp = torch.from_numpy(valx[inds]).float().to(self.device)
+                print(f"Data from batch {b}:\n {temp}")
+                print(temp.shape)
                 ypred_batch = self.model.network(torch.from_numpy(valx[inds]).float().to(self.device))
                 y_pred_softmax = torch.log_softmax(ypred_batch, dim=1)
                 _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
@@ -367,8 +380,10 @@ valX = applynormalize(valX, means, stds)
 # Initialize model and train (USE GPU!: Runtime -> Change runtime type)
 model = CNNTrainer()
 model.defineModel(nbands=200, windowSize=5, train_y=trainY)
-model.trainFold(trainx=trainX, trainy=trainY, valx=valX, valy=valY, 
-                        batch_size=128, epochs=50, filepath="temp_model", printProcess=False)  # Set printProcess=True to see the training process 
+train = False
+if train:
+    model.trainFold(trainx=trainX, trainy=trainY, valx=valX, valy=valY, 
+                            batch_size=128, epochs=50, filepath="temp_model", printProcess=False)  # Set printProcess=True to see the training process 
 
 # Validate
 model.loadModel("temp_model")

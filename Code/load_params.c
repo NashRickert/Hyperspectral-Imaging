@@ -1,3 +1,5 @@
+/* #include <cstdint> */
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,7 @@
 #define BIN_PATH "../Weight_Binaries/"
 
 struct ParamInfo params[NUM_PARAMS];
+struct ParamInfo data;
 
 /**
  * @brief This function puts the weights associated with file_name.bin inside
@@ -34,7 +37,7 @@ static void put_weights(char *file_name, float *buf, int size) {
 /**
  * @brief helper function which multiplies the elements of the shape to get the size of the weights arr
  */
-static int get_wgt_size(struct Shape shape) {
+int get_wgt_size(struct Shape shape) {
     int size = 1;
     for (int i = 0; i < shape.len; i++) {
         size *= shape.dim[i];
@@ -141,9 +144,52 @@ void print_weights() {
 }
 
 /**
+ * @brief Loads the given batch into the global data variable
+ * Note that the parameter batch_num should be 0 indexed
+ */
+void load_batch(int batch_num) {
+    int *dims = (int *) malloc(sizeof(int) * 5);
+    struct Shape shape = {dims, 5};
+    dims[0] = 128;
+    dims[1] = 1;
+    dims[2] = 200;
+    dims[3] = 5;
+    dims[4] = 5;
+    int size = get_wgt_size(shape); // num of entries in a normal batch
+    if (batch_num == NUM_BATCHES - 1) {
+        dims[0] = 5;
+        /* shape = (struct Shape) {(int[]){5, 1, 200, 5, 5}, 5}; */
+    }
+    char *file_name = "test_data.bin";
+    
+    // Concatenate the path of our binary
+    char *new_buf = (char *) malloc(strlen(BIN_PATH) + strlen(file_name) + 1);
+    memcpy(new_buf, BIN_PATH, strlen(BIN_PATH));
+    memcpy(new_buf + strlen(BIN_PATH), file_name, strlen(file_name) + 1);
+
+    FILE *f = fopen(new_buf, "rb");
+
+    // Sanity checking:
+    fseek(f, 0, SEEK_END);
+    int f_size = ftell(f);
+    int exp_size = size * (NUM_BATCHES - 1) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
+    printf("f_size is %d, the other number is %d\n", f_size, exp_size);
+    assert(f_size == exp_size);
+    rewind(f);
+    
+    fseek(f, size * sizeof(float) * batch_num, SEEK_SET);
+    float *data_buf = (float *) malloc(sizeof(float) * get_wgt_size(shape));
+    fread(data_buf, sizeof(float), get_wgt_size(shape), f);
+    fclose(f);
+    
+    data = (struct ParamInfo) {.shape = shape, .weights = data_buf, .filename = file_name};
+    free(new_buf);
+}
+
+/**
  * @brief Does the full initialization. We don't want to expose the other functions out of this file
  */
-void full_init() {
+void full_weight_init() {
     init_params();
     init_weights();
 }

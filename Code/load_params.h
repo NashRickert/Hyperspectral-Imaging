@@ -1,6 +1,7 @@
 #pragma once
 
 #define NUM_PARAMS 38
+#define NUM_BATCHES 41
 
 #define CONV10W_IDX 0
 #define CONV10B_IDX 1
@@ -55,12 +56,14 @@ struct ParamInfo {
 };
 
 extern struct ParamInfo params[NUM_PARAMS];
+extern struct ParamInfo data;
 
 
 
 /* void put_weights(char *file_name, float *buf, int size); */
-/* int get_wgt_size(int dim_size, int *dimensions); */
+int get_wgt_size(struct Shape shape);
 /* void init_weights(); */
 /* void init_params(); */
 void print_weights();
-void full_init();
+void full_weight_init();
+void load_batch(int batch_num);
