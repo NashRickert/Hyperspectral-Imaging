@@ -1,16 +1,15 @@
-/* #include <cstdint> */
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "CNN.h"
-#include "load_params.h"
+#include "load.h"
 
 #define BIN_PATH "../Weight_Binaries/"
 
-struct ParamInfo params[NUM_PARAMS];
-struct Data data;
+struct Parameter params[NUM_PARAMS];
+struct Tensor g_data;
 
 /**
  * @brief This function puts the weights associated with file_name.bin inside
@@ -37,7 +36,7 @@ static void put_weights(char *file_name, float *buf, int size) {
 /**
  * @brief helper function which multiplies the elements of the shape to get the size of the weights arr
  */
-int get_wgt_size(struct Shape shape) {
+int get_size(struct Shape shape) {
     int size = 1;
     for (int i = 0; i < shape.len; i++) {
         size *= shape.dim[i];
@@ -50,26 +49,26 @@ int get_wgt_size(struct Shape shape) {
  */
 static void init_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
-        struct ParamInfo parameter = params[i];
+        struct Parameter parameter = params[i];
         char *file_name = parameter.filename;
-        int wgt_size = get_wgt_size(parameter.shape);
+        int wgt_size = get_size(parameter.shape);
         put_weights(file_name, parameter.weights, wgt_size);
     }
 }
 
 /**
- * @brief Helper function which initializes a ParamInfo with the proper specification
+ * @brief Helper function which initializes a Parameter with the proper specification
  */
 static void init_param(int idx, int *dims_array, int size, size_t weight_count, char *filename) {
     int *dims = (int *) malloc(sizeof(int) * size);
     memcpy(dims, dims_array, sizeof(int) * size);
     float *weights = (float *) malloc(sizeof(float) * weight_count);
     struct Shape shape = {dims, size};
-    params[idx] = (struct ParamInfo){shape, weights, filename};
+    params[idx] = (struct Parameter){shape, weights, filename};
 }
 
 
-// Sets up the ParamInfo fields of the params array
+// Sets up the Parameter fields of the params array
 /**
  * @brief Initializes each element of the params array with the appropriate specification
  * Uses the above helper function
@@ -133,9 +132,9 @@ static void init_params() {
  */
 void print_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
-        struct ParamInfo parameter = params[i];
+        struct Parameter parameter = params[i];
         printf("Parameter name: %s\n", parameter.filename);
-        int wgt_size = get_wgt_size(parameter.shape);
+        int wgt_size = get_size(parameter.shape);
         for (int j = 0; j < wgt_size; j++) {
             printf("%f ", parameter.weights[j]);
         }
@@ -155,7 +154,7 @@ void load_batch(int batch_num) {
     dims[2] = 200;
     dims[3] = 5;
     dims[4] = 5;
-    int size = get_wgt_size(shape); // num of entries in a normal batch
+    int size = get_size(shape); // num of entries in a normal batch
     if (batch_num == NUM_BATCHES - 1) {
         dims[0] = 5;
     }
@@ -176,11 +175,11 @@ void load_batch(int batch_num) {
     rewind(f);
     
     fseek(f, size * sizeof(float) * batch_num, SEEK_SET);
-    float *data_buf = (float *) malloc(sizeof(float) * get_wgt_size(shape));
-    fread(data_buf, sizeof(float), get_wgt_size(shape), f);
+    float *data_buf = (float *) malloc(sizeof(float) * get_size(shape));
+    fread(data_buf, sizeof(float), get_size(shape), f);
     fclose(f);
     
-    data = (struct Data) {.shape = shape, .data = data_buf};
+    g_data = (struct Tensor) {.shape = shape, .data = data_buf};
     free(new_buf);
 }
 
@@ -190,4 +189,22 @@ void load_batch(int batch_num) {
 void full_weight_init() {
     init_params();
     init_weights();
+}
+
+void destroy_parameter(struct Parameter parameter) {
+    free(parameter.shape.dim);
+    free(parameter.weights);
+}
+
+void destroy_tensor(struct Tensor data) {
+    free(data.shape.dim);
+    free(data.data);
+}
+
+/**
+ * @brief Moves src into dest, freeing any memory associated with dest before
+ */
+void move_tensor(struct Tensor dest, struct Tensor src) {
+    destroy_tensor(dest);
+    dest = src;
 }

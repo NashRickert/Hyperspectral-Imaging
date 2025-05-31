@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -std=c11 -g
 TARGET = CNN
 
 # Source files
-SRCS = CNN.c load_params.c Math.c
+SRCS = CNN.c load.c Math.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)

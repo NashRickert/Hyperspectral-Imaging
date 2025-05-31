@@ -47,23 +47,24 @@ struct Shape {
     int len;
 };
 
-// should consider renaming Data to Tensor, ParamInfo to Parameter
-
-struct ParamInfo {
+struct Parameter {
     struct Shape shape; // The shape of the weights array
     float *weights;  // Pointer to the malloced weights
     char *filename;
 };
 
-struct Data {
+struct Tensor {
     struct Shape shape;
     float *data;
 };
 
-extern struct ParamInfo params[NUM_PARAMS];
-extern struct Data data;
+extern struct Parameter params[NUM_PARAMS];
+extern struct Tensor g_data;
 
-int get_wgt_size(struct Shape shape);
+int get_size(struct Shape shape);
 void print_weights();
 void full_weight_init();
 void load_batch(int batch_num);
+void destroy_parameter(struct Parameter parameter);
+void destroy_tensor(struct Tensor data);
+void move_tensor(struct Tensor dest, struct Tensor src);

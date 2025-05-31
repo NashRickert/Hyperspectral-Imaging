@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Math.h"
-#include "load_params.h"
+#include "load.h"
 
 static struct Shape copy_shape(struct Shape shape) {
     int *new_dim = (int *) malloc(sizeof(int) * shape.len);
@@ -15,16 +15,19 @@ static struct Shape copy_shape(struct Shape shape) {
 /**
  * @brief Does an non-inplace ReLU calculation for a buf of length len
  */
-struct Data ReLU(struct Data data) {
-    int len = get_wgt_size(data.shape);
-    print_buf(data.shape.dim, data.shape.len);
+struct Tensor ReLU(struct Tensor data) {
+    int len = get_size(data.shape);
     float *out_data_buf = (float *) malloc(sizeof(float) * len);
     for (int i = 0; i < len; i++) {
         out_data_buf[i] = (data.data[i] > 0.0f) ? data.data[i] : 0.0f;
     }
-    struct Data out_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
+    struct Tensor out_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
     return out_data;
 
+}
+
+int *compute_prefixes(struct Shape shape) {
+    
 }
 
 // Note: For repeated lookups it would be better to save the prefixes array as a global var or something
@@ -114,13 +117,12 @@ struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, in
  * Rest of the parameters should be self explanatory
  * Note that input_shape_len and output_shape_len are always known to be 5, so we use a macro
  */
-struct Data Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, struct Data data, int out_channels,
+struct Tensor Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor data, int out_channels,
               int kernel_size, int padding, int stride, int dilation) {
     struct Shape in_shape_st = data.shape;
     int *in_shape = data.shape.dim;
     struct Shape out_shape_st = get_output_shape_Conv3d(data.shape, out_channels, kernel_size, padding, stride, dilation);
-    print_buf(out_shape_st.dim, out_shape_st.len);
-    int out_len = get_wgt_size(out_shape_st);
+    int out_len = get_size(out_shape_st);
     float *out_data = (float *) malloc(sizeof(float) * out_len);
 
     float *wgt = weight_st.weights;
@@ -157,14 +159,14 @@ struct Data Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, struct 
             }
         }
     }
-    struct Data out_data_st = {.shape = out_shape_st, .data = out_data};
+    struct Tensor out_data_st = {.shape = out_shape_st, .data = out_data};
 
     return out_data_st;
 }
 
 
-struct Data BatchNorm3d(struct ParamInfo W, struct ParamInfo B, struct ParamInfo M, struct ParamInfo V, struct Data data) {
-    float *out_data_buf = (float *) malloc(sizeof(float) * get_wgt_size(data.shape));
+struct Tensor BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor data) {
+    float *out_data_buf = (float *) malloc(sizeof(float) * get_size(data.shape));
     const float eps = 1.0f / 100000.0;
     int *in_dim = data.shape.dim;
     for (int n = 0; n < in_dim[0]; n++) {
@@ -181,6 +183,6 @@ struct Data BatchNorm3d(struct ParamInfo W, struct ParamInfo B, struct ParamInfo
             }
         }
     }
-    struct Data ret_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
+    struct Tensor ret_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
     return ret_data;
 }

@@ -1,5 +1,3 @@
-// Temp comment
-// Todo: renaming structs. ParamInfo inheriting Tensor?
 // Redo comments for modified functions
 // In general, clean up the code
 // Do prefix caching for get_idx
@@ -7,5 +5,4 @@
 // Add clean up for all my buffers (especially for non-inplace transfer of data -- too much memory in use)
 // Remove excess comments
 // Determine if the Conv3d macros are appropriate or will overlap with other things we are interested in
-// Rename load_params.[c|h] file to just load.[c|h]
-// Also probably not a bad idea to cache data/weight length to avoid recomputation, even though it isn't that intensive. Just better to avoid get_wgt_size calls
+// Also probably not a bad idea to cache data/weight length to avoid recomputation, even though it isn't that intensive. Just better to avoid get_size calls
