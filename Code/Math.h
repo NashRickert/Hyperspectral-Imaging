@@ -2,6 +2,12 @@
 
 #include "load_params.h"
 int get_idx(struct Shape shape, int *idxs);
-void ReLU(float *buf, int len);
+struct Data ReLU(struct Data data);
 struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, int kernel_size, int padding, int stride, int dilation);
 void print_buf(int *buf, int len);
+void fprint_buf(float *buf, int len);
+struct Data Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, struct Data in_data, int out_channels,
+             int kernel_size, int padding, int stride, int dilation);
+struct Data BatchNorm3d(struct ParamInfo W, struct ParamInfo B, struct ParamInfo M, struct ParamInfo V, struct Data data);
+/* float *Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, float *in_data, struct Shape in_shape_st, */
+/*               int out_channels, int kernel_size, int padding, int stride, int dilation, struct Shape *out_shape_ret); */

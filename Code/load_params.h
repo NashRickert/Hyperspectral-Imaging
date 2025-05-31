@@ -47,6 +47,8 @@ struct Shape {
     int len;
 };
 
+// should consider renaming Data to Tensor, ParamInfo to Parameter
+
 struct ParamInfo {
     struct Shape shape; // The shape of the weights array
     /* int *dimensions; */
@@ -55,8 +57,13 @@ struct ParamInfo {
     char *filename;
 };
 
+struct Data {
+    struct Shape shape;
+    float *data;
+};
+
 extern struct ParamInfo params[NUM_PARAMS];
-extern struct ParamInfo data;
+extern struct Data data;
 
 
 

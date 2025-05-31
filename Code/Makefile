@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CFLAGS = -Wall -Wextra -std=c11 -g
 
 # Executable name
 TARGET = CNN
@@ -16,7 +16,7 @@ INCLUDES = -I.
 
 # Build target
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS) -lm
 
 # Compile source files into object files
 %.o: %.c

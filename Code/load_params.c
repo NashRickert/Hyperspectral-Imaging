@@ -10,7 +10,7 @@
 #define BIN_PATH "../Weight_Binaries/"
 
 struct ParamInfo params[NUM_PARAMS];
-struct ParamInfo data;
+struct Data data;
 
 /**
  * @brief This function puts the weights associated with file_name.bin inside
@@ -182,7 +182,12 @@ void load_batch(int batch_num) {
     fread(data_buf, sizeof(float), get_wgt_size(shape), f);
     fclose(f);
     
-    data = (struct ParamInfo) {.shape = shape, .weights = data_buf, .filename = file_name};
+    data = (struct Data) {.shape = shape, .data = data_buf};
+    /* printf("Data shape:\n"); */
+    /* print_buf(shape); */
+    /* for (int i = 0; i < 5; i++) { */
+    /*     printf("%d ", sha) */
+    /* } */
     free(new_buf);
 }
 

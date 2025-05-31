@@ -149,6 +149,11 @@ class Hyper3DNetLite(nn.Module, ABC):
         # print("Data shape in forward: ", x.shape)
 
         # 3D Feature extractor
+        # m = nn.Conv3d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
+        # y = m(x)
+        # print("output shape: ", y.shape)
+        # print(y)
+
         x = self.conv_layer1(x)
         x = self.conv_layer2(x)
         # Reshape 3D-2D
@@ -332,12 +337,13 @@ class CNNTrainer():
                     
                 
                 temp = torch.from_numpy(valx[inds]).float().to(self.device)
-                print(f"Data from batch {b}:\n {temp}")
-                print(temp.shape)
+                # print(f"Data from batch {b}:\n {temp}")
+                # print(temp.shape)
                 ypred_batch = self.model.network(torch.from_numpy(valx[inds]).float().to(self.device))
                 y_pred_softmax = torch.log_softmax(ypred_batch, dim=1)
                 _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
                 ypred = ypred + (y_pred_tags.cpu().numpy()).tolist()
+                # break # We only want to test against one of the batches to compare with c impl
         ytest = torch.from_numpy(valy).long().cpu().numpy()
 
         return ytest, ypred
