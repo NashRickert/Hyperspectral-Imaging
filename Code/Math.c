@@ -17,7 +17,6 @@ static struct Shape copy_shape(struct Shape shape) {
  */
 struct Data ReLU(struct Data data) {
     int len = get_wgt_size(data.shape);
-    printf("ReLU len is %d\n", len);
     print_buf(data.shape.dim, data.shape.len);
     float *out_data_buf = (float *) malloc(sizeof(float) * len);
     for (int i = 0; i < len; i++) {
@@ -36,7 +35,7 @@ struct Data ReLU(struct Data data) {
  * and returns the corresponding index of the entry in a 1d representation of the tensor
  */
 int get_idx(struct Shape shape, int *idxs) {
-    // For now this is fine, but with cahced prefixes the other version will be faster
+    // For now this is fine, but with cached prefixes the other version will be faster
     int dim_len = shape.len;
     int *dimensions = shape.dim;
     int offset = 0;

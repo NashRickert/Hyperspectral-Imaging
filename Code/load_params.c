@@ -158,7 +158,6 @@ void load_batch(int batch_num) {
     int size = get_wgt_size(shape); // num of entries in a normal batch
     if (batch_num == NUM_BATCHES - 1) {
         dims[0] = 5;
-        /* shape = (struct Shape) {(int[]){5, 1, 200, 5, 5}, 5}; */
     }
     char *file_name = "test_data.bin";
     
@@ -173,7 +172,6 @@ void load_batch(int batch_num) {
     fseek(f, 0, SEEK_END);
     int f_size = ftell(f);
     int exp_size = size * (NUM_BATCHES - 1) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
-    printf("f_size is %d, the other number is %d\n", f_size, exp_size);
     assert(f_size == exp_size);
     rewind(f);
     
@@ -183,11 +181,6 @@ void load_batch(int batch_num) {
     fclose(f);
     
     data = (struct Data) {.shape = shape, .data = data_buf};
-    /* printf("Data shape:\n"); */
-    /* print_buf(shape); */
-    /* for (int i = 0; i < 5; i++) { */
-    /*     printf("%d ", sha) */
-    /* } */
     free(new_buf);
 }
 

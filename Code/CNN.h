@@ -6,3 +6,5 @@
 // Add malloc checks since some allocations are quite large
 // Add clean up for all my buffers (especially for non-inplace transfer of data -- too much memory in use)
 // Remove excess comments
+// Determine if the Conv3d macros are appropriate or will overlap with other things we are interested in
+// Rename load_params.[c|h] file to just load.[c|h]

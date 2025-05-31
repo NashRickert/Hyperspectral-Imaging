@@ -51,8 +51,6 @@ struct Shape {
 
 struct ParamInfo {
     struct Shape shape; // The shape of the weights array
-    /* int *dimensions; */
-    /* int dim_len;     // The length of the dimensions array */
     float *weights;  // Pointer to the malloced weights
     char *filename;
 };
@@ -65,12 +63,7 @@ struct Data {
 extern struct ParamInfo params[NUM_PARAMS];
 extern struct Data data;
 
-
-
-/* void put_weights(char *file_name, float *buf, int size); */
 int get_wgt_size(struct Shape shape);
-/* void init_weights(); */
-/* void init_params(); */
 void print_weights();
 void full_weight_init();
 void load_batch(int batch_num);
