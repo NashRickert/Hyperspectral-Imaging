@@ -8,3 +8,4 @@
 // Remove excess comments
 // Determine if the Conv3d macros are appropriate or will overlap with other things we are interested in
 // Rename load_params.[c|h] file to just load.[c|h]
+// Also probably not a bad idea to cache data/weight length to avoid recomputation, even though it isn't that intensive. Just better to avoid get_wgt_size calls
