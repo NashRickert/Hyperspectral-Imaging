@@ -14,10 +14,11 @@ int main() {
     full_weight_init();
     load_batch(0);
 
-    struct Tensor temp_data;
+    /* struct Tensor temp_data; */
 
-    temp_data = Conv3d(params[CONV10W_IDX], params[CONV10B_IDX], g_data, 16, 3, 1, 1, 1);
-    move_tensor(g_data, temp_data);
+    // Note that this current technique leaks data because of the fact that we don't free
+    // The old g_data tensors
+    g_data = Conv3d(params[CONV10W_IDX], params[CONV10B_IDX], g_data, 16, 3, 1, 1, 1);
     printf("Done with Conv3d\n");
 
     g_data = ReLU(g_data);
@@ -26,7 +27,7 @@ int main() {
     g_data = BatchNorm3d(params[CONV12W_IDX], params[CONV12B_IDX], params[CONV12MEAN_IDX], params[CONV12VAR_IDX], g_data);
     printf("Done with BatchNorm3d\n");
 
-    /* fprint_buf(g_data.data, get_size(g_data.shape)); */
+    fprint_buf(g_data.data, g_data.len);
 
     return EXIT_SUCCESS;
 }

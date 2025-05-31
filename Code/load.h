@@ -47,24 +47,32 @@ struct Shape {
     int len;
 };
 
-struct Parameter {
-    struct Shape shape; // The shape of the weights array
-    float *weights;  // Pointer to the malloced weights
-    char *filename;
-};
-
 struct Tensor {
     struct Shape shape;
     float *data;
+    int *prefixes;
+    int len;
 };
+
+struct Parameter {
+    /* struct Shape shape; // The shape of the weights array */
+    /* float *weights;  // Pointer to the malloced weights */
+    /* char *filename; */
+    /* int *prefixes; */
+    /* int len; */
+    struct Tensor tensor;
+    char *filename;
+};
+
 
 extern struct Parameter params[NUM_PARAMS];
 extern struct Tensor g_data;
 
-int get_size(struct Shape shape);
+/* int get_size(struct Shape shape); */
 void print_weights();
 void full_weight_init();
 void load_batch(int batch_num);
 void destroy_parameter(struct Parameter parameter);
 void destroy_tensor(struct Tensor data);
 void move_tensor(struct Tensor dest, struct Tensor src);
+struct Tensor construct_tensor(struct Shape shape);

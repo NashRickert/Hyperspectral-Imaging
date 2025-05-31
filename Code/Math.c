@@ -16,58 +16,24 @@ static struct Shape copy_shape(struct Shape shape) {
  * @brief Does an non-inplace ReLU calculation for a buf of length len
  */
 struct Tensor ReLU(struct Tensor data) {
-    int len = get_size(data.shape);
-    float *out_data_buf = (float *) malloc(sizeof(float) * len);
-    for (int i = 0; i < len; i++) {
-        out_data_buf[i] = (data.data[i] > 0.0f) ? data.data[i] : 0.0f;
+    struct Shape shape = copy_shape(data.shape);
+    struct Tensor out_tensor = construct_tensor(shape);
+    for (int i = 0; i < out_tensor.len; i++) {
+        out_tensor.data[i] = (data.data[i] > 0.0f) ? data.data[i] : 0.0f;
     }
-    struct Tensor out_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
-    return out_data;
-
+    return out_tensor;
 }
 
-int *compute_prefixes(struct Shape shape) {
-    
-}
-
-// Note: For repeated lookups it would be better to save the prefixes array as a global var or something
-// OR: I could include it in param_info for the weights, and then have a single updating global var for the data as it passes through the network
-// This is a todo for later, for now the simple implementation is fine
 /**
  * @brief This function takes the shape of a tensor and an array of indices (of the same length as the shape tensor)
  * and returns the corresponding index of the entry in a 1d representation of the tensor
  */
-int get_idx(struct Shape shape, int *idxs) {
-    // For now this is fine, but with cached prefixes the other version will be faster
-    int dim_len = shape.len;
-    int *dimensions = shape.dim;
-    int offset = 0;
-    int stride = 1;
-
-    for (int i = dim_len - 1; i >= 0; i--) {
-        offset += idxs[i] * stride;
-        stride *= dimensions[i];
+int get_idx(struct Tensor tensor, int *idxs) {
+    int sum = 0;
+    for (int i = 0; i < tensor.shape.len; i++) {
+        sum += tensor.prefixes[i] * idxs[i];
     }
-    return offset;
-    /* int dim_len = shape.len; */
-    /* int *dimensions = shape.dim; */
-    /* int *prefixes = (int *) malloc(sizeof(int) * dim_len); */
-
-    /* for (int i = dim_len - 1; i >= 0; i--) { */
-    /*     if (i == dim_len - 1) { */
-    /*         prefixes[i] = 1; */
-    /*         continue; */
-    /*     } */
-    /*     prefixes[i] = prefixes[i + 1] * dimensions[i+1]; */
-    /* } */
-
-    /* int sum = 0; */
-    /* for (int i = 0; i < dim_len; i++) { */
-    /*     sum += prefixes[i] * idxs[i]; */
-    /* } */
-
-    /* free(prefixes); */
-    /* return sum; */
+    return sum;
 }
 
 #define IN_SHAPE_LEN 5
@@ -119,15 +85,12 @@ struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, in
  */
 struct Tensor Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor data, int out_channels,
               int kernel_size, int padding, int stride, int dilation) {
-    struct Shape in_shape_st = data.shape;
+    struct Tensor out_tensor = construct_tensor(get_output_shape_Conv3d(data.shape, out_channels, kernel_size, padding, stride, dilation));
+
+    float *wgt = weight_st.tensor.data;
+    float *bias = bias_st.tensor.data;
+
     int *in_shape = data.shape.dim;
-    struct Shape out_shape_st = get_output_shape_Conv3d(data.shape, out_channels, kernel_size, padding, stride, dilation);
-    int out_len = get_size(out_shape_st);
-    float *out_data = (float *) malloc(sizeof(float) * out_len);
-
-    float *wgt = weight_st.weights;
-    float *bias = bias_st.weights;
-
     for (int n = 0; n < in_shape[0]; n++) {
         for (int c_out = 0; c_out < out_channels; c_out++) {
             for (int d = 0; d < in_shape[2]; d++) {
@@ -145,44 +108,45 @@ struct Tensor Conv3d(struct Parameter weight_st, struct Parameter bias_st, struc
                                         if (id >= 0 && id < in_shape[2] &&
                                             ih >= 0 && ih < in_shape[3] &&
                                             iw >= 0 && iw < in_shape[4]) {
-                                            sum += data.data[get_idx(in_shape_st, (int[]){n, c_in, id, ih, iw})]
-                                                * wgt[get_idx(weight_st.shape, (int[]){c_out,c_in,kd,kh,kw})];
+                                            int idx1 = get_idx(data, (int[]){n, c_in, id, ih, iw});
+                                            int idx2 = get_idx(weight_st.tensor, (int[]){c_out,c_in,kd,kh,kw});
+                                            sum += data.data[idx1] * wgt[idx2];
                                         }
                                     }
                                 }
                             }
                         }
-                        int idx = get_idx(out_shape_st, (int[]) {n,c_out,d,h,w});
-                        out_data[idx] = sum;
+                        int idx = get_idx(out_tensor, (int[]) {n,c_out,d,h,w});
+                        out_tensor.data[idx] = sum;
                     }
                 }
             }
         }
     }
-    struct Tensor out_data_st = {.shape = out_shape_st, .data = out_data};
-
-    return out_data_st;
+    return out_tensor;
 }
 
 
 struct Tensor BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor data) {
-    float *out_data_buf = (float *) malloc(sizeof(float) * get_size(data.shape));
+    /* float *out_data_buf = (float *) malloc(sizeof(float) * get_size(data.shape)); */
     const float eps = 1.0f / 100000.0;
+    struct Tensor out_tensor = construct_tensor(copy_shape(data.shape));
     int *in_dim = data.shape.dim;
     for (int n = 0; n < in_dim[0]; n++) {
         for (int c_in = 0; c_in < in_dim[1]; c_in++) {
             for (int d = 0; d < in_dim[2]; d++) {
                 for (int h = 0; h < in_dim[3]; h++) {
                     for (int w = 0; w < in_dim[4]; w++) {
-                        int idx = get_idx(data.shape, (int[]) {n, c_in, d, h, w});
+                        int idx = get_idx(data, (int[]) {n, c_in, d, h, w});
                         float x = data.data[idx];
-                        float norm_x = (x - M.weights[c_in]) / sqrt(V.weights[c_in] + eps);
-                        out_data_buf[idx] = norm_x * W.weights[c_in] + B.weights[c_in];
+                        float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps);
+                        out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in];
                     }
                 }
             }
         }
     }
-    struct Tensor ret_data = {.shape = copy_shape(data.shape), .data = out_data_buf};
-    return ret_data;
+    return out_tensor;
+    /* struct Tensor ret_data = {.shape = copy_shape(data.shape), .data = out_data_buf}; */
+    /* return ret_data; */
 }
