@@ -7,8 +7,8 @@
 #include "load_params.h"
 
 static struct Shape copy_shape(struct Shape shape) {
-    int *new_dim = (int *) malloc(sizeof(float) * shape.len);
-    memcpy(new_dim, shape.dim, shape.len);
+    int *new_dim = (int *) malloc(sizeof(int) * shape.len);
+    memcpy(new_dim, shape.dim, shape.len * sizeof(int));
     struct Shape new_shape = {.dim = new_dim, .len = shape.len};
     return new_shape;
 }
@@ -85,7 +85,6 @@ void fprint_buf(float *buf, int len) {
  * @brief This function returns the shape of the output of Conv3d
  */
 struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, int kernel_size, int padding, int stride, int dilation) {
-    /* int *out_shape = (int *) malloc(sizeof(int) * OUT_SHAPE_LEN); */
     int D = in_shape.dim[2];
     int H = in_shape.dim[3];
     int W = in_shape.dim[4];
@@ -104,7 +103,6 @@ struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, in
     out_shape.dim[2] = Dout;
     out_shape.dim[3] = Hout;
     out_shape.dim[4] = Wout;
-    /* print_buf(out_shape, 5); */
     return out_shape;
 }
 
@@ -146,7 +144,6 @@ struct Data Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, struct 
                                         if (id >= 0 && id < in_shape[2] &&
                                             ih >= 0 && ih < in_shape[3] &&
                                             iw >= 0 && iw < in_shape[4]) {
-                                            /* printf("No fault"); */
                                             sum += data.data[get_idx(in_shape_st, (int[]){n, c_in, id, ih, iw})]
                                                 * wgt[get_idx(weight_st.shape, (int[]){c_out,c_in,kd,kh,kw})];
                                         }
@@ -154,12 +151,8 @@ struct Data Conv3d(struct ParamInfo weight_st, struct ParamInfo bias_st, struct 
                                 }
                             }
                         }
-                        /* printf("No fault"); */
                         int idx = get_idx(out_shape_st, (int[]) {n,c_out,d,h,w});
-                        /* assert(idx < out_len); */
-                        /* printf("Our indices are %d %d %d %d %d\n", n, c_out, d, h, w); */
                         out_data[idx] = sum;
-                        /* printf("No fault"); */
                     }
                 }
             }

@@ -155,6 +155,8 @@ class Hyper3DNetLite(nn.Module, ABC):
         # print(y)
 
         x = self.conv_layer1(x)
+        print("x shape: ", x.shape)
+        print(x)
         x = self.conv_layer2(x)
         # Reshape 3D-2D
         x = reshape(x, (x.shape[0], self.img_shape[1] * 16, self.img_shape[2], self.img_shape[3]))
@@ -324,20 +326,20 @@ class CNNTrainer():
             self.model.network.eval()
             Teva = np.ceil(1.0 * len(valx) / batch_size).astype(np.int32)
             indtest = np.arange(len(valx))
-            try:
-                os.remove('../Weight_Binaries/test_data.bin')
-            except:
-                pass
+            # try:
+            #     os.remove('../Weight_Binaries/test_data.bin')
+            # except:
+            #     pass
             for b in range(Teva):
                 inds = indtest[b * batch_size:(b + 1) * batch_size]
-                temp = valx[inds]
-                with open('../Weight_Binaries/test_data.bin', 'ab') as data_file:
-                    data_file.write(temp.astype(np.float32).tobytes())
+                # temp = valx[inds]
+                # with open('../Weight_Binaries/test_data.bin', 'ab') as data_file:
+                #     data_file.write(temp.astype(np.float32).tobytes())
 
                     
                 
-                temp = torch.from_numpy(valx[inds]).float().to(self.device)
-                # print(f"Data from batch {b}:\n {temp}")
+                # temp = torch.from_numpy(valx[inds]).float().to(self.device)
+                print(f"Data from batch {b}\n")
                 # print(temp.shape)
                 ypred_batch = self.model.network(torch.from_numpy(valx[inds]).float().to(self.device))
                 y_pred_softmax = torch.log_softmax(ypred_batch, dim=1)

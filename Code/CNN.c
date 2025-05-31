@@ -6,17 +6,24 @@
 #include "Math.h"
 #include "load_params.h"
 
+void print_shape(struct Shape shape) {
+    printf("Shape size: %d\n Shape dimensions:\n", shape.len);
+    print_buf(shape.dim, shape.len);
+}
 int main() {
     full_weight_init();
     load_batch(0);
     struct Data data2 = Conv3d(params[0], params[1], data, 16, 3, 1, 1, 1);
     printf("Done with Conv3d\n");
-    fprint_buf(data2.data, get_wgt_size(data2.shape));
+    print_shape(data2.shape);
+    /* fprint_buf(data2.data, get_wgt_size(data2.shape)); */
     struct Data data3 = ReLU(data2);
     printf("Done with ReLU\n");
-    fprint_buf(data3.data, get_wgt_size(data3.shape));
+    /* print_shape(data3.shape); */
+    /* fprint_buf(data3.data, get_wgt_size(data3.shape)); */
     struct Data data4 = BatchNorm3d(params[2], params[3], params[4], params[5], data3);
     printf("Done with BatchNorm3d\n");
+    print_shape(data4.shape);
     fprint_buf(data4.data, get_wgt_size(data4.shape));
 
     /* fprint_buf(data4.data, get_wgt_size(data4.shape)); */

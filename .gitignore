@@ -8,11 +8,11 @@ Code/temp.py
 temp
 CNN
 Math
+*.log
 
 # LaTeX temporary files and output
 *.aux
 *.lof
-*.log
 *.lot
 *.fls
 *.out
