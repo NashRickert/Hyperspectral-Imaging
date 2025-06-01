@@ -1,7 +1,3 @@
-// Redo comments for modified functions
-// In general, clean up the code
-// Add clean up for all my buffers (especially for non-inplace transfer of data -- too much memory in use)
+// Everything needs to be commented/recommented
 // Remove excess comments
-// Determine if the Conv3d macros are appropriate or will overlap with other things we are interested in
-
-// Modify function calls to take pointers to structs to save on the copying overhead. Structs have gotten large enough this is probably a good idea
+// Save the output of each batch in some file on disk and then figure out the processing stage (ideally with flexibility in that function for both receiving data directly or loading it from disk)

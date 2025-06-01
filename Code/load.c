@@ -6,7 +6,7 @@
 #include "CNN.h"
 #include "load.h"
 
-#define BIN_PATH "../Weight_Binaries/"
+#define BIN_PATH "../Binaries/"
 
 struct Parameter params[NUM_PARAMS];
 
@@ -187,19 +187,10 @@ void full_weight_init() {
     init_weights();
 }
 
-void destroy_tensor(struct Tensor data) {
-    free(data.shape.dim);
-    free(data.data);
-    free(data.prefixes);
-}
-
-// Note that I don't think this works right now
-/**
- * @brief Moves src into dest, freeing any memory associated with dest before
- */
-void move_tensor(struct Tensor dest, struct Tensor src) {
-    destroy_tensor(dest);
-    dest = src;
+void destroy_tensor(struct Tensor *data) {
+    free(data->shape.dim);
+    free(data->data);
+    free(data->prefixes);
 }
 
 int *compute_prefixes(struct Shape shape) {
