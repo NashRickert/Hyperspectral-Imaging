@@ -119,6 +119,10 @@ class Hyper3DNetLite(nn.Module, ABC):
             stride = 1
             out = 5
         self.classes = classes
+        # Why are we getting such odd values here? I don't get out initalization works I guess
+        print("Classes: ", self.classes)
+        print("Stride: ", stride)
+        print("Out: ", out)
         self.img_shape = img_shape
 
         self.conv_layer1 = nn.Sequential(nn.Conv3d(in_channels=img_shape[0], out_channels=16, kernel_size=3, padding=1),
@@ -155,22 +159,32 @@ class Hyper3DNetLite(nn.Module, ABC):
         # print(y)
 
         x = self.conv_layer1(x)
-        print("x shape: ", x.shape)
-        print(x)
+        print("x shape after conv_layer1: ", x.shape)
+        # print("x shape: ", x.shape)
+        # print(x)
         x = self.conv_layer2(x)
+        print("x shape after conv_layer2: ", x.shape)
         # Reshape 3D-2D
         x = reshape(x, (x.shape[0], self.img_shape[1] * 16, self.img_shape[2], self.img_shape[3]))
         # 2D Spatial encoder
         x = self.sepconv1(x)
+        print("x shape after sepconv1: ", x.shape)
+        # print(x)
         x = self.sepconv2(x)
+        print("x shape after sepconv2: ", x.shape)
         x = self.sepconv3(x)
+        print("x shape after sepconv3: ", x.shape)
         # Global Average Pooling
         x = self.average(x)
+        print("x shape after averaging: ", x.shape)
         x = reshape(x, (x.shape[0], x.shape[1]))
+        print("Second to last shape of x (after reshaping):", x.shape)
         if self.classes == 2:
             x = self.fc1(x)
         else:
             x = self.fc1(x)
+        print("Final shape of x: ", x.shape)
+        print("Final x:\n", x)
         return x
 
 import random

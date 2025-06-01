@@ -9,7 +9,6 @@
 #define BIN_PATH "../Weight_Binaries/"
 
 struct Parameter params[NUM_PARAMS];
-struct Tensor g_data;
 
 /**
  * @brief This function puts the weights associated with file_name.bin inside
@@ -144,7 +143,7 @@ void print_weights() {
  * @brief Loads the given batch into the global data variable
  * Note that the parameter batch_num should be 0 indexed
  */
-void load_batch(int batch_num) {
+void load_batch(int batch_num, struct Tensor *data) {
     int *dims = (int *) malloc(sizeof(int) * 5);
     struct Shape shape = {dims, 5};
     dims[0] = 128;
@@ -156,7 +155,7 @@ void load_batch(int batch_num) {
     if (batch_num == NUM_BATCHES - 1) {
         dims[0] = 5;
     }
-    g_data = construct_tensor(shape);
+    *data = construct_tensor(shape);
     char *file_name = "test_data.bin";
     
     // Concatenate the path of our binary
@@ -169,12 +168,12 @@ void load_batch(int batch_num) {
     // Sanity checking:
     fseek(f, 0, SEEK_END);
     int f_size = ftell(f);
-    int exp_size = g_data.len * (NUM_BATCHES - 1) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
+    int exp_size = (*data).len * (NUM_BATCHES - 1) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
     assert(f_size == exp_size);
     rewind(f);
     
-    fseek(f, g_data.len * sizeof(float) * batch_num, SEEK_SET);
-    fread(g_data.data, sizeof(float), get_size(shape), f);
+    fseek(f, (*data).len * sizeof(float) * batch_num, SEEK_SET);
+    fread((*data).data, sizeof(float), get_size(shape), f);
     fclose(f);
     
     free(new_buf);

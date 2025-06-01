@@ -213,6 +213,114 @@ struct Tensor Conv2d(struct Parameter weight_st, struct Parameter bias_st, struc
     return out_tensor;
 }
 
-struct Tensor DepthwiseConv2d() {
-    // TODO
+struct Tensor DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor data,
+                              int kernel_size, int padding, int stride, int dilation) {
+    int in_channels = data.shape.dim[1];
+    // For depthwise: out_channels = in_channels
+    struct Tensor out_tensor = construct_tensor(get_output_shape_Conv2d(data.shape, in_channels, kernel_size, padding, stride, dilation));
+    float *wgt = weight_st.tensor.data;
+    float *bias = bias_st.tensor.data;
+    int *in_shape = data.shape.dim;
+    int *out_shape = out_tensor.shape.dim;
+    
+    for (int n = 0; n < in_shape[0]; n++) {
+        for (int c = 0; c < in_channels; c++) {  // Same channel index for input and output
+            for (int h = 0; h < out_shape[2]; h++) {
+                for (int w = 0; w < out_shape[3]; w++) {
+                    float sum = bias[c];
+                    // No inner channel loop - each channel processed independently
+                    for (int kh = 0; kh < kernel_size; kh++) {
+                        for (int kw = 0; kw < kernel_size; kw++) {
+                            int ih = h * stride + kh * dilation - padding;
+                            int iw = w * stride + kw * dilation - padding;
+                            if (ih >= 0 && ih < in_shape[2] &&
+                                iw >= 0 && iw < in_shape[3]) {
+                                int idx1 = get_idx(data, (int[]){n, c, ih, iw});
+                                // Weight shape: [out_channels, 1, kh, kw] = [in_channels, 1, kh, kw]
+                                int idx2 = get_idx(weight_st.tensor, (int[]){c, 0, kh, kw});
+                                sum += data.data[idx1] * wgt[idx2];
+                            }
+                        }
+                    }
+                    int idx = get_idx(out_tensor, (int[]) {n, c, h, w});
+                    out_tensor.data[idx] = sum;
+                }
+            }
+        }
+    }
+    return out_tensor;
+}
+
+struct Tensor BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor data) {
+    const float eps = 1.0f / 100000.0;
+    struct Tensor out_tensor = construct_tensor(copy_shape(data.shape));
+    int *in_dim = data.shape.dim;
+    for (int n = 0; n < in_dim[0]; n++) {
+        for (int c_in = 0; c_in < in_dim[1]; c_in++) {
+            for (int h = 0; h < in_dim[2]; h++) {
+                for (int w = 0; w < in_dim[3]; w++) {
+                    int idx = get_idx(data, (int[]) {n, c_in, h, w});
+                    float x = data.data[idx];
+                    float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps);
+                    out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in];
+                }
+            }
+        }
+    }
+    return out_tensor;
+}
+
+struct Tensor AvgPool2d(struct Tensor data, int kernel_size) {
+    int stride = kernel_size;
+    int N = data.shape.dim[0];
+    int C = data.shape.dim[1];
+    int H = data.shape.dim[2];
+    int W = data.shape.dim[3];
+    int Hout = (H - kernel_size) / stride + 1;
+    int Wout = (W - kernel_size) / stride + 1;
+
+    struct Shape out_shape = copy_shape(data.shape);
+    out_shape.dim[2] = Hout;
+    out_shape.dim[3] = Wout;
+    struct Tensor out_tensor = construct_tensor(out_shape);
+    for (int h = 0; h < Hout; h++) {
+        for (int w = 0; w < Wout; w++) {
+            for (int n = 0; n < N; n++) {
+                for (int c = 0; c < C; c++) {
+                    float sum = 0.0f;
+                    for (int kh = 0; kh < kernel_size; kh++) {
+                        for (int kw = 0; kw < kernel_size; kw++) {
+                            int idx = get_idx(data, (int[]){n,c,stride * h + kh, stride * w + kw});
+                            sum += data.data[idx];
+                        }
+                    }
+                    sum /= (kernel_size * kernel_size);
+                    int idx = get_idx(out_tensor, (int[]){n,c,h,w});
+                    out_tensor.data[idx] = sum;
+                }
+            }
+        }
+    }
+    return out_tensor;
+}
+
+struct Tensor Linear(int in_features, int out_features, struct Parameter weight, struct Parameter bias, struct Tensor data) {
+    assert(data.shape.len == 2);
+    assert(data.shape.dim[1] == in_features);
+    struct Shape out_shape = copy_shape(data.shape);
+    out_shape.dim[1] = out_features;
+    struct Tensor out_tensor = construct_tensor(out_shape);
+    for (int h = 0 ; h < out_tensor.shape.dim[0]; h++) {
+        for (int w = 0; w < out_tensor.shape.dim[1]; w++) {
+            float sum = 0.0f;
+            for (int i = 0; i < data.shape.dim[1]; i++) {
+                int idx1 = get_idx(data, (int[]){h,i});
+                int idx2 = get_idx(weight.tensor, (int[]){w,i});
+                sum += data.data[idx1] * weight.tensor.data[idx2];
+            }
+            int idx = get_idx(out_tensor, (int[]) {h,w});
+            out_tensor.data[idx] = sum + bias.tensor.data[w];
+        }
+    }
+    return out_tensor;
 }

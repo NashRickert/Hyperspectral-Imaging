@@ -61,12 +61,12 @@ struct Parameter {
 
 
 extern struct Parameter params[NUM_PARAMS];
-extern struct Tensor g_data;
 
 void print_weights();
 void full_weight_init();
-void load_batch(int batch_num);
+void load_batch(int batch_num, struct Tensor *data);
 void destroy_parameter(struct Parameter parameter);
 void destroy_tensor(struct Tensor data);
 void move_tensor(struct Tensor dest, struct Tensor src);
 struct Tensor construct_tensor(struct Shape shape);
+int *compute_prefixes(struct Shape shape);
