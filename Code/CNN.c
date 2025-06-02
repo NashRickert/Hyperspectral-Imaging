@@ -32,11 +32,18 @@ void fprint_buf(float *buf, int len) {
     printf("\n\n");
 }
 
+/**
+ * This function loops through out batch_x_data.bin files which hold the output
+ * of each forward pass for each batch of data. We then do the final transformation to get
+ * our predictions and compare that against the val_data.bin which holds the correct results
+ * We return our overall validation accuracy
+ */
 float ver_acc() {
     int tot_size = 128 * (NUM_BATCHES);
     int *results = (int *) malloc(sizeof(int) * tot_size);
     int *buf;
     int len;
+    // Loop reads batch data, does final transformation, and stores it inside of results buffer
     for (int i = 0; i < NUM_BATCHES; i++) {
         char filename[64];
         sprintf(filename, "batch_%d_data.bin", i);
@@ -65,19 +72,20 @@ float ver_acc() {
 
         get_predictions(&tensor, &buf, &len);
         int start = i * 128;
-        /* for (int j = 0; j < len; j++) { */
-        /*     printf() */
-        /* } */
         memcpy(results + start, buf, 128 * sizeof(int));
         destroy_tensor(&tensor);
     }
 
-    // Should un-hardcode this (and making concatenation its own func not a bad idea)
+    // Opens and stores data from val_data.bin inside of validation buffer
+    char* file_name = "val_data.bin";
+    char *new_buf = (char *) malloc(strlen(BIN_PATH) + strlen(file_name) + 1);
+    memcpy(new_buf, BIN_PATH, strlen(BIN_PATH));
+    memcpy(new_buf + strlen(BIN_PATH), file_name, strlen(file_name) + 1);
 
-    FILE *f = fopen("../Binaries/val_data.bin", "rb");
+    FILE *f = fopen(new_buf, "rb");
+    free(new_buf);
     fseek(f, 0, SEEK_END);
     int size = ftell(f) / sizeof(int);
-    printf("%d\n", size);
     assert(size == tot_size);
     rewind(f);
 
@@ -85,8 +93,8 @@ float ver_acc() {
     fread(validation, sizeof(int), tot_size, f);
     fclose(f);
     
+    // Does correctness calculations
     int correct = 0;
-    printf("total size: %d", tot_size);
     for (int i = 0; i < tot_size; i++) {
         if (results[i] == validation[i]) {
             correct++;
@@ -101,28 +109,8 @@ float ver_acc() {
 }
 
 int main() {
-    /* struct Tensor data; */
-    /* full_weight_init(); */
-    /* for (int i = NUM_BATCHES - 1; i < NUM_BATCHES; i++) { */
-    /*     printf("Loading batch number %d/%d\n", i, NUM_BATCHES - 1); */
-    /*     load_batch(i, &data); */
-    /*     printf("Starting forward loop for batch number %d/%d\n", i, NUM_BATCHES - 1); */
-    /*     forward(&data); */
-    /*     printf("Finished forward loop for batch number %d/%d\n", i, NUM_BATCHES - 1); */
-
-    /*     char filename[64]; */
-    /*     sprintf(filename, "batch_%d_data.bin", i); */
-    /*     put_batch(&data, filename); */
-    /*     // Done to make sure the last batch with weird dimensions works right */
-    /*     if (i == NUM_BATCHES - 1) { */
-    /*         fprint_buf(data.data, data.len); */
-    /*     } */
-    /* } */
 
     ver_acc();
 
-    /* ver_acc(); */
-
-    /* fprint_buf(data.data, data.len); */
     return EXIT_SUCCESS;
 }

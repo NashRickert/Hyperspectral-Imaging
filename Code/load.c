@@ -150,10 +150,7 @@ void load_batch(int batch_num, struct Tensor *data) {
     dims[2] = 200;
     dims[3] = 5;
     dims[4] = 5;
-    /* int size = get_size(shape); // num of entries in a normal batch */
-    if (batch_num == NUM_BATCHES - 1) {
-        dims[0] = 5;
-    }
+
     *data = construct_tensor(shape);
     char *file_name = "test_data.bin";
     

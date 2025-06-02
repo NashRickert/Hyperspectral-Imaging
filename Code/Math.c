@@ -344,15 +344,15 @@ void Linear(int in_features, int out_features, struct Parameter weight, struct P
 
 /**
  * Takes a tensor which is the result of a forward pass of a batch of a data
- * Returns our predictions based on that data as a Tensor
+ * Returns our predictions based on that data through output parameters
  * Applies log(softmax(data)) and then does argmax
- * Tensor returned is 1 dimensional, shape = (batch_size) (128 for all but last set of data)
+ * Tensor returned is 1 dimensional, shape = batch_size = 128
  */
 void get_predictions(struct Tensor *data, int **retbuf, int *retlen) {
     struct Shape in_shape = data->shape;
     int H = in_shape.dim[0];
     int W = in_shape.dim[1];
-    /* assert(H == 128); */
+    assert(H == 128);
     assert(W == 16);
 
     // Used for storing output
@@ -380,10 +380,6 @@ void get_predictions(struct Tensor *data, int **retbuf, int *retlen) {
     free(denoms);
 
     // Does the argmax operation
-    /* int *dimension = (int *) malloc(sizeof(int) * 1); */
-    /* dimension[0] = H; */
-    /* struct Shape out_shape = {.dim = dimension, .len = 1}; */
-    /* struct Tensor out_tensor = construct_tensor(out_shape); */
     *retbuf = (int *) malloc(sizeof(int) * H);
     *retlen = H;
     for (int h = 0; h < H; h++) {
@@ -400,5 +396,4 @@ void get_predictions(struct Tensor *data, int **retbuf, int *retlen) {
     }
 
     destroy_tensor(&tensor);
-    /* return out_tensor; */
 } 
