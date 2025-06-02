@@ -1,7 +1,8 @@
 #pragma once
 
 #define NUM_PARAMS 38
-#define NUM_BATCHES 41
+#define NUM_BATCHES 40
+#define BIN_PATH "../Binaries/"
 
 #define CONV10W_IDX 0
 #define CONV10B_IDX 1
@@ -43,20 +44,20 @@
 #define FC1B_IDX 37
 
 struct Shape {
-    int *dim;
-    int len;
+    int *dim;              // An array which holds the dimensions of the shape
+    int len;               // The length of the dim array
 };
 
 struct Tensor {
-    struct Shape shape;
-    float *data;
-    int *prefixes;
-    int len;
+    struct Shape shape;    // The shape of the tensor
+    float *data;           // The actual data of the tensor
+    int *prefixes;         // Shape prefixes, used for computing indices
+    int len;               // Length of the data array
 };
 
 struct Parameter {
-    struct Tensor tensor;
-    char *filename;
+    struct Tensor tensor;  // The tensor for the parameter
+    char *filename;        // The filename associated with the parameter (holds weights)
 };
 
 

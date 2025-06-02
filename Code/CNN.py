@@ -159,32 +159,32 @@ class Hyper3DNetLite(nn.Module, ABC):
         # print(y)
 
         x = self.conv_layer1(x)
-        print("x shape after conv_layer1: ", x.shape)
+        # print("x shape after conv_layer1: ", x.shape)
         # print("x shape: ", x.shape)
         # print(x)
         x = self.conv_layer2(x)
-        print("x shape after conv_layer2: ", x.shape)
+        # print("x shape after conv_layer2: ", x.shape)
         # Reshape 3D-2D
         x = reshape(x, (x.shape[0], self.img_shape[1] * 16, self.img_shape[2], self.img_shape[3]))
         # 2D Spatial encoder
         x = self.sepconv1(x)
-        print("x shape after sepconv1: ", x.shape)
+        # print("x shape after sepconv1: ", x.shape)
         # print(x)
         x = self.sepconv2(x)
-        print("x shape after sepconv2: ", x.shape)
+        # print("x shape after sepconv2: ", x.shape)
         x = self.sepconv3(x)
-        print("x shape after sepconv3: ", x.shape)
+        # print("x shape after sepconv3: ", x.shape)
         # Global Average Pooling
         x = self.average(x)
-        print("x shape after averaging: ", x.shape)
+        # print("x shape after averaging: ", x.shape)
         x = reshape(x, (x.shape[0], x.shape[1]))
-        print("Second to last shape of x (after reshaping):", x.shape)
+        # print("Second to last shape of x (after reshaping):", x.shape)
         if self.classes == 2:
             x = self.fc1(x)
         else:
             x = self.fc1(x)
-        print("Final shape of x: ", x.shape)
-        print("Final x:\n", x)
+        # print("Final shape of x: ", x.shape)
+        # print("Final x:\n", x)
         return x
 
 import random
@@ -344,6 +344,7 @@ class CNNTrainer():
             #     os.remove('../Weight_Binaries/test_data.bin')
             # except:
             #     pass
+
             for b in range(Teva):
                 inds = indtest[b * batch_size:(b + 1) * batch_size]
                 # temp = valx[inds]
@@ -356,11 +357,25 @@ class CNNTrainer():
                 print(f"Data from batch {b}\n")
                 # print(temp.shape)
                 ypred_batch = self.model.network(torch.from_numpy(valx[inds]).float().to(self.device))
+                print(f"ypred_batch shape is: {ypred_batch.shape} (should be 128, 16)\nypred_batch is {ypred_batch}\n")
                 y_pred_softmax = torch.log_softmax(ypred_batch, dim=1)
+                print(f"ypred_softmax shape is: {y_pred_softmax.shape}\ny_pred_softmax is {y_pred_softmax}")
                 _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
+                print(f"ypred_tags shape is: {y_pred_tags.shape}, y_pred_tags is \n{y_pred_tags}\n")
                 ypred = ypred + (y_pred_tags.cpu().numpy()).tolist()
+                print(f"ypred is {ypred}\n")
                 # break # We only want to test against one of the batches to compare with c impl
         ytest = torch.from_numpy(valy).long().cpu().numpy()
+        # try:
+        #     os.remove('../Binaries/val_data.bin')
+        # except:
+        #     pass
+        # with open('../Binaries/val_data.bin', "wb") as val_file:
+        #     val_file.write(ytest.astype(np.int32).tobytes())
+
+        print("ytest:\n", ytest)
+        # print("ytest len:\n", len(ytest))
+        print("ytest as int:\n", ytest.astype(np.int32))
 
         return ytest, ypred
 
@@ -409,6 +424,11 @@ if train:
 
 # Validate
 model.loadModel("temp_model")
+
+# Doing this because I hate the last batch with 5 entries
+valX = valX[:-5]
+valY = valY[:-5]
+
 ytest, ypred = model.evaluateFold(valx=valX, valy=valY, batch_size=128)
 correct_pred = (np.array(ypred) == ytest).astype(float)
 oa = correct_pred.sum() / len(correct_pred) * 100

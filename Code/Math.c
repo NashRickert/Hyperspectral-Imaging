@@ -341,3 +341,64 @@ void Linear(int in_features, int out_features, struct Parameter weight, struct P
     destroy_tensor(data);
     *data = out_tensor;
 }
+
+/**
+ * Takes a tensor which is the result of a forward pass of a batch of a data
+ * Returns our predictions based on that data as a Tensor
+ * Applies log(softmax(data)) and then does argmax
+ * Tensor returned is 1 dimensional, shape = (batch_size) (128 for all but last set of data)
+ */
+void get_predictions(struct Tensor *data, int **retbuf, int *retlen) {
+    struct Shape in_shape = data->shape;
+    int H = in_shape.dim[0];
+    int W = in_shape.dim[1];
+    /* assert(H == 128); */
+    assert(W == 16);
+
+    // Used for storing output
+    struct Tensor tensor = construct_tensor(copy_shape(data->shape));
+
+    // Does the summation along each row for use in softmax
+    float *denoms = (float *) malloc(sizeof(float) * H);
+    for (int h = 0; h < H; h++) {
+        float sum = 0.0f;
+        for (int w = 0; w < W; w++) {
+            float val = data->data[get_idx(data, (int[]) {h,w})];
+            sum += expf(val);
+        }
+        denoms[h] = sum;
+    }
+
+    // Actually doing log softmax calculation
+    for (int h = 0; h < H; h++) {
+        for (int w = 0; w < W; w++) {
+            int idx = get_idx(data, (int[]) {h,w});
+            float val = data->data[idx];
+            tensor.data[idx] = logf(expf(val) / denoms[h]);
+        }
+    }
+    free(denoms);
+
+    // Does the argmax operation
+    /* int *dimension = (int *) malloc(sizeof(int) * 1); */
+    /* dimension[0] = H; */
+    /* struct Shape out_shape = {.dim = dimension, .len = 1}; */
+    /* struct Tensor out_tensor = construct_tensor(out_shape); */
+    *retbuf = (int *) malloc(sizeof(int) * H);
+    *retlen = H;
+    for (int h = 0; h < H; h++) {
+        int max_idx = 0;
+        float max = tensor.data[get_idx(&tensor, (int[]){h,0})];
+        for (int w = 0; w < W; w++) {
+            float val = tensor.data[get_idx(&tensor, (int[]){h,w})];
+            if (val > max) {
+                max = val;
+                max_idx = w;
+            }
+        }
+        (*retbuf)[h] = max_idx;
+    }
+
+    destroy_tensor(&tensor);
+    /* return out_tensor; */
+} 
