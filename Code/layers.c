@@ -3,11 +3,18 @@
 #include "load.h"
 #include "layers.h"
 
+// This is a wrapper around each math function we apply
+// It is useful in case we want to do something at each step, such as printing results or shape
+// Or doing some timing/benchmarking
 #define APPLY_LAYER(new_result) do { \
         (new_result);                \
 } while(0)
 
 static int img_shape[4] = {1, 200, 5, 5};
+
+
+// Each of these layers group together math operations in the same way as in
+// the layers inside of CNN.py
 
 void conv_layer1(struct Tensor *data) {
     APPLY_LAYER(Conv3d(params[CONV10W_IDX], params[CONV10B_IDX], data, 16, 3, 1, 1, 1));
@@ -52,6 +59,9 @@ void average(struct Tensor *data) {
 void fc1(struct Tensor *data) {
     APPLY_LAYER(Linear(256, 16, params[FC1W_IDX], params[FC1B_IDX], data));
 }
+
+
+// These reshape operations correspond to the reshaping done in CNN.py
 
 void reshape1(struct Tensor *data) {
     int x_shape_0 = data->shape.dim[0];

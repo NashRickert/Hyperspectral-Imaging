@@ -70,3 +70,4 @@ void destroy_tensor(struct Tensor *data);
 void move_tensor(struct Tensor dest, struct Tensor src);
 struct Tensor construct_tensor(struct Shape shape);
 int *compute_prefixes(struct Shape shape);
+void put_batch(struct Tensor *data, char *filename);

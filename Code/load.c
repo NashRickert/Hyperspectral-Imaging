@@ -11,8 +11,8 @@
 struct Parameter params[NUM_PARAMS];
 
 /**
- * @brief This function puts the weights associated with file_name.bin inside
- * of the appropriately sized buffer
+ * @brief This function puts the weights associated with BIN_PATH/file_name inside
+ * of the passed buffer, which has a length of size. Must be appropriately sized.
  * Note that the size field is only passed as a sanity check for the size of our binaries
  */
 static void put_weights(char *file_name, float *buf, int size) {
@@ -33,7 +33,7 @@ static void put_weights(char *file_name, float *buf, int size) {
 }
 
 /**
- * @brief helper function which multiplies the elements of the shape to get the size of the weights arr
+ * Multiplies the elements of the shape to get the len of the associated tensor
  */
 static int get_size(struct Shape shape) {
     int size = 1;
@@ -44,7 +44,8 @@ static int get_size(struct Shape shape) {
 }
 
 /**
- * @brief Function which loops over the params array to initialize each of the weights
+ * Loops over the params array to initialize each of the weights
+ * Basically just a wrapper around put_weights
  */
 static void init_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
@@ -55,7 +56,7 @@ static void init_weights() {
 }
 
 /**
- * @brief Helper function which initializes a Parameter with the proper specification
+ * Initializes a Parameter with the proper specification based on the arguments
  */
 static void init_param(int idx, int *dims_array, int size, char *filename) {
     int *dims = (int *) malloc(sizeof(int) * size);
@@ -66,10 +67,9 @@ static void init_param(int idx, int *dims_array, int size, char *filename) {
 }
 
 
-// Sets up the Parameter fields of the params array
 /**
- * @brief Initializes each element of the params array with the appropriate specification
- * Uses the above helper function
+ * Initializes each element of the params array with the appropriate specification
+ * Hardcoded based on our a priori knowledge of the parameters from the python program
  */
 static void init_params() {
     init_param(CONV10W_IDX, (int[]){16, 1, 3, 3, 3}, 5, "conv_layer1.0.weight.bin");
@@ -126,7 +126,7 @@ static void init_params() {
 }
 
 /**
- * @brief prints the weights in the params array so we can check against the weights from python
+ * Prints the weights from the params array. Allows us to verify correctness against python
  */
 void print_weights() {
     for (int i = 0; i < NUM_PARAMS; i++) {
@@ -140,8 +140,8 @@ void print_weights() {
 }
 
 /**
- * @brief Loads the given batch into the global data variable
- * Note that the parameter batch_num should be 0 indexed
+ * Loads the given batch into the provided data Tensor
+ * The parameter batch_num should be 0 indexed
  */
 void load_batch(int batch_num, struct Tensor *data) {
     int *dims = (int *) malloc(sizeof(int) * 5);
@@ -172,6 +172,7 @@ void load_batch(int batch_num, struct Tensor *data) {
     assert(f_size == exp_size);
     rewind(f);
     
+    // Read the data
     fseek(f, (*data).len * sizeof(float) * batch_num, SEEK_SET);
     fread((*data).data, sizeof(float), get_size(shape), f);
     fclose(f);
@@ -180,19 +181,27 @@ void load_batch(int batch_num, struct Tensor *data) {
 }
 
 /**
- * @brief Does the full initialization. We don't want to expose the other functions out of this file
+ * Does the full initialization
  */
 void full_weight_init() {
     init_params();
     init_weights();
 }
 
+/**
+ * Frees the dynamically allocated resources of a tensor
+ */
 void destroy_tensor(struct Tensor *data) {
     free(data->shape.dim);
     free(data->data);
     free(data->prefixes);
 }
 
+/**
+ * Does the computation of prefixes associated with a shape
+ * Prefixes are useful for calculating indexes, thus it is useful to store them
+ * As a part of our tensor
+ */
 int *compute_prefixes(struct Shape shape) {
     int dim_len = shape.len;
     int *dimensions = shape.dim;
@@ -210,10 +219,11 @@ int *compute_prefixes(struct Shape shape) {
 }
 
 /**
- * @brief Everything about a tensor is uniquely determined by its shape
- * (except actual data values). We construct a tensor with a passed shape
- * the tensor will use shape as its actual shape field, so one should not reuse
+ * Constructs a tensor based on the passed shape parameter
+ * The tensor uses the parameter shape itself in its shape field, so one should not reuse
  * shapes to create multiple tensors, otherwise their dimension arrays will be shared
+ * This is all possible because everything about a tensor is uniquely determined by its shape
+ * (Except its data values which will need to be filled in by the caller)
  */
 struct Tensor construct_tensor(struct Shape shape) {
     int *prefixes = compute_prefixes(shape);
@@ -230,4 +240,25 @@ struct Tensor construct_tensor(struct Shape shape) {
         .len = length,
     };
     return tens;
+}
+
+/**
+ * Stores the data from the tensor parameter into a file with path BIN_PATH/filename
+ */
+void put_batch(struct Tensor *data, char *filename) {
+    char *new_buf = (char *) malloc(strlen(BIN_PATH) + strlen(filename) + 1);
+    memcpy(new_buf, BIN_PATH, strlen(BIN_PATH));
+    memcpy(new_buf + strlen(BIN_PATH), filename, strlen(filename) + 1);
+
+    // I believe fopen would already destroy the file if it existed, but this is safer
+    remove(new_buf);
+
+    FILE *f = fopen(new_buf, "wb");
+    assert(f);
+
+    int w = fwrite(data->data, sizeof(float), data->len, f);
+    assert(w == data->len);
+
+    fclose(f);
+    free(new_buf);
 }

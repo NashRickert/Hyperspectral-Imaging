@@ -12,6 +12,9 @@
 #define IN_SHAPE_LEN_2D 4
 #define OUT_SHAPE_LEN_2D 4
 
+/**
+ * Does a deep copy of the provided shape and returns it
+ */
 static struct Shape copy_shape(struct Shape shape) {
     int *new_dim = (int *) malloc(sizeof(int) * shape.len);
     memcpy(new_dim, shape.dim, shape.len * sizeof(int));
@@ -19,7 +22,7 @@ static struct Shape copy_shape(struct Shape shape) {
     return new_shape;
 }
 /**
- * @brief Does an non-inplace ReLU calculation for a buf of length len
+ * Does a ReLU calculation on data in accordance with the pytorch specification
  */
 void ReLU(struct Tensor *data) {
     struct Shape shape = copy_shape(data->shape);
@@ -33,8 +36,10 @@ void ReLU(struct Tensor *data) {
 }
 
 /**
- * @brief This function takes the shape of a tensor and an array of indices (of the same length as the shape tensor)
- * and returns the corresponding index of the entry in a 1d representation of the tensor
+ * Takes a tensor and array of indices appropriate for the shape of the tensor
+ * Returns the corresponding index of the entry in a 1d representation of the tensor
+ * Note that we must have len(idxs) = tensor.shape.len
+ * Also must have that 0 <= idxs[i] < shape.dim[i]
  */ 
 int get_idx(struct Tensor *tensor, int *idxs) {
     int sum = 0;
@@ -45,7 +50,7 @@ int get_idx(struct Tensor *tensor, int *idxs) {
 }
 
 /**
- * @brief This function returns the shape of the output of Conv3d
+ * Returns the expected shape of the output of Conv3d
  */
 static struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_channels, int kernel_size, int padding, int stride, int dilation) {
     int D = in_shape.dim[2];
@@ -70,12 +75,7 @@ static struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_chann
 }
 
 /**
- * @brief This function performs the pytorch operation Conv3d (3d convolution)
- * returns a pointer to the output data
- * return parameters out_shape_ret returns the output shape of the array
- * Caller is repsonsible for freeing both the output data and output shape
- * Rest of the parameters should be self explanatory
- * Note that input_shape_len and output_shape_len are always known to be 5, so we use a macro
+ * Performs the Conv3d operation on data in accordance with the pytorch specification
  */
 void Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                      int out_channels, int kernel_size, int padding, int stride, int dilation) {
@@ -123,6 +123,9 @@ void Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
 }
 
 
+/**
+ * Performs the BatchNorm3d operation on data in accordance with the pytorch specification
+ */
 void BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor *data) {
     const float eps = 1.0f / 100000.0;
     struct Tensor out_tensor = construct_tensor(copy_shape(data->shape));
@@ -147,7 +150,7 @@ void BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, str
 
 
 /**
- * @brief This function returns the shape of the output of Conv2d
+ * Returns the expected shape of the output of Conv2d
  */
 static struct Shape get_output_shape_Conv2d(struct Shape in_shape, int out_channels, int kernel_size, int padding, int stride, int dilation) {
     int H = in_shape.dim[2];
@@ -169,6 +172,9 @@ static struct Shape get_output_shape_Conv2d(struct Shape in_shape, int out_chann
 }
 
 
+/**
+ * Performs the Conv2d operation on data in accordance with the pytorch specification
+ */
 void Conv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                      int out_channels, int kernel_size, int padding, int stride, int dilation) {
     struct Tensor out_tensor = construct_tensor(get_output_shape_Conv2d(data->shape, out_channels, kernel_size, padding, stride, dilation));
@@ -208,6 +214,10 @@ void Conv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
     *data = out_tensor;
 }
 
+/**
+ * Performs depthwise Conv2d on the data in accordance with the pytorch specification
+ * This means that in_channels = groups = out_channels and is otherwise the same as Conv2d
+ */
 void DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                               int kernel_size, int padding, int stride, int dilation) {
     int in_channels = data->shape.dim[1];
@@ -247,6 +257,9 @@ void DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struc
     *data = out_tensor;
 }
 
+/**
+ * Performs the BatchNorm2d operation on data in accordance with the pytorch specification
+ */
 void BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor *data) {
     const float eps = 1.0f / 100000.0;
     struct Tensor out_tensor = construct_tensor(copy_shape(data->shape));
@@ -267,6 +280,9 @@ void BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, str
     *data = out_tensor;
 }
 
+/**
+ * Performs the AvgPool2d operation on data in accordance with the pytorch specification
+ */
 void AvgPool2d(struct Tensor *data, int kernel_size) {
     int stride = kernel_size;
     int N = data->shape.dim[0];
@@ -302,6 +318,9 @@ void AvgPool2d(struct Tensor *data, int kernel_size) {
     *data = out_tensor;
 }
 
+/**
+ * Performs the Linear operation on data in accordance with the pytorch specification
+ */
 void Linear(int in_features, int out_features, struct Parameter weight, struct Parameter bias, struct Tensor *data) {
     (void) in_features;
     struct Shape out_shape = copy_shape(data->shape);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "CNN.h"
-#include "Math.h"
+/* #include "Math.h" */
 #include "load.h"
 #include "layers.h"
 
@@ -11,6 +11,7 @@ void print_shape(struct Shape shape) {
     for (int i = 0; i < shape.len; i++) printf("%d ", shape.dim[i]);
     printf("\n\n");
 }
+
 
 void forward(struct Tensor *data) {
     conv_layer1(data);
@@ -33,10 +34,25 @@ void fprint_buf(float *buf, int len) {
 int main() {
     struct Tensor data;
     full_weight_init();
-    load_batch(0, &data);
+    for (int i = 0; i < NUM_BATCHES; i++) {
+        printf("Loading batch number %d/%d\n", i, NUM_BATCHES);
+        load_batch(i, &data);
+        printf("Starting forward loop for batch number %d/%d\n", i, NUM_BATCHES);
+        forward(&data);
+        printf("Finished forward loop for batch number %d/%d\n", i, NUM_BATCHES);
 
-    forward(&data);
+        char filename[64];
+        /* assert(sizeof("batch_1_data.bin") == FILE_LEN); */
+        sprintf(filename, "batch_%d_data.bin", i);
+        /* assert(w == FILE_LEN - 1); */
+        /* assert(filename[FILE_LEN -1] == '\0'); */
+        put_batch(&data, filename);
+        // Done to make sure the last batch with weird dimensions works right
+        if (i == NUM_BATCHES - 1) {
+            fprint_buf(data.data, data.len);
+        }
+    }
 
-    fprint_buf(data.data, data.len);
+    /* fprint_buf(data.data, data.len); */
     return EXIT_SUCCESS;
 }
