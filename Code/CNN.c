@@ -111,6 +111,7 @@ float ver_acc() {
 int main() {
 
     ver_acc();
-
+    
+  
     return EXIT_SUCCESS;
 }

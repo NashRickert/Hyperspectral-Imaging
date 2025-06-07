@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "Math.h"
@@ -12,3 +13,6 @@ void average(struct Tensor *data);
 void fc1(struct Tensor *data);
 void reshape1(struct Tensor *data);
 void reshape2(struct Tensor *data);
+
+extern uint64_t accum_ctr;
+extern uint64_t ctr;

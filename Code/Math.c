@@ -5,12 +5,17 @@
 #include <string.h>
 #include "Math.h"
 #include "load.h"
+#include "counter.h"
 
 #define IN_SHAPE_LEN_3D 5
 #define OUT_SHAPE_LEN_3D 5
 
 #define IN_SHAPE_LEN_2D 4
 #define OUT_SHAPE_LEN_2D 4
+
+// Each mathematical operation corresponds precisely with the pytorch function
+// Of the same name for documentation version 2.7
+// https://docs.pytorch.org/docs/2.7/
 
 /**
  * Does a deep copy of the provided shape and returns it
@@ -27,6 +32,7 @@ static struct Shape copy_shape(struct Shape shape) {
 void ReLU(struct Tensor *data) {
     struct Shape shape = copy_shape(data->shape);
     struct Tensor out_tensor = construct_tensor(shape);
+    RELU_ACCUM(out_tensor.len);
     for (int i = 0; i < out_tensor.len; i++) {
         out_tensor.data[i] = (data->data[i] > 0.0f) ? data->data[i] : 0.0f;
     }
@@ -44,7 +50,10 @@ void ReLU(struct Tensor *data) {
 int get_idx(struct Tensor *tensor, int *idxs) {
     int sum = 0;
     for (int i = 0; i < tensor->shape.len; i++) {
-        sum += tensor->prefixes[i] * idxs[i];
+        int temp;
+        IDX_MULT(tensor->prefixes[i], idxs[i], temp);
+        IDX_ADD(sum, temp, sum);
+        /* sum += tensor->prefixes[i] * idxs[i]; */
     }
     return sum;
 }
@@ -96,16 +105,35 @@ void Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
                             for (int kd = 0; kd < kernel_size; kd++) {
                                 for (int kh = 0; kh < kernel_size; kh++) {
                                     for (int kw = 0; kw < kernel_size; kw++) {
-                                        int id = d * stride + kd * dilation - padding;
-                                        int ih = h * stride + kh * dilation - padding;
-                                        int iw = w * stride + kw * dilation - padding;
+                                        int temp1, temp2;
+                                        int id, ih, iw;
+                                        DATA_MULT(d, stride, temp1);
+                                        DATA_MULT(kd, dilation, temp2);
+                                        DATA_ADD(temp1, temp2, id);
+                                        DATA_ADD(id, -padding, id);
+
+                                        DATA_MULT(h, stride, temp1);
+                                        DATA_MULT(kh, dilation, temp2);
+                                        DATA_ADD(temp1, temp2, ih);
+                                        DATA_ADD(ih, -padding, ih);
+
+                                        DATA_MULT(w, stride, temp1);
+                                        DATA_MULT(kw, dilation, temp2);
+                                        DATA_ADD(temp1, temp2, iw);
+                                        DATA_ADD(iw, -padding, iw);
+                                        /* int id = d * stride + kd * dilation - padding; */
+                                        /* int ih = h * stride + kh * dilation - padding; */
+                                        /* int iw = w * stride + kw * dilation - padding; */
 
                                         if (id >= 0 && id < in_shape[2] &&
                                             ih >= 0 && ih < in_shape[3] &&
                                             iw >= 0 && iw < in_shape[4]) {
                                             int idx1 = get_idx(data, (int[]){n, c_in, id, ih, iw});
                                             int idx2 = get_idx(&weight_st.tensor, (int[]){c_out,c_in,kd,kh,kw});
-                                            sum += data->data[idx1] * wgt[idx2];
+                                            float temp;
+                                            DATA_MULT(data->data[idx1], wgt[idx2], temp);
+                                            DATA_ADD(sum, temp, sum);
+                                            /* sum += data->data[idx1] * wgt[idx2]; */
                                         }
                                     }
                                 }
@@ -137,8 +165,14 @@ void BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, str
                     for (int w = 0; w < in_dim[4]; w++) {
                         int idx = get_idx(data, (int[]) {n, c_in, d, h, w});
                         float x = data->data[idx];
-                        float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps);
-                        out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in];
+                        float temp1;
+                        float temp2 = 1 / sqrt(V.tensor.data[c_in] + eps);
+                        DATA_ADD(x, -M.tensor.data[c_in], temp1);
+                        DATA_MULT(temp1, temp2, temp1);
+                        DATA_MULT(temp1, W.tensor.data[c_in], temp2);
+                        DATA_ADD(temp2, B.tensor.data[c_in], out_tensor.data[idx]);
+                        /* float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps); */
+                        /* out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in]; */
                     }
                 }
             }
@@ -147,7 +181,6 @@ void BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, str
     destroy_tensor(data);
     *data = out_tensor;
 }
-
 
 /**
  * Returns the expected shape of the output of Conv2d
@@ -192,14 +225,28 @@ void Conv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
                     for (int c_in = 0; c_in < in_shape[1]; c_in++) {
                         for (int kh = 0; kh < kernel_size; kh++) {
                             for (int kw = 0; kw < kernel_size; kw++) {
-                                int ih = h * stride + kh * dilation - padding;
-                                int iw = w * stride + kw * dilation - padding;
+                                int temp1, temp2;
+                                int ih, iw;
+                                DATA_MULT(h, stride, temp1);
+                                DATA_MULT(kh, dilation, temp2);
+                                DATA_ADD(temp1, temp2, ih);
+                                DATA_ADD(ih, -padding, ih);
+
+                                DATA_MULT(w, stride, temp1);
+                                DATA_MULT(kw, dilation, temp2);
+                                DATA_ADD(temp1, temp2, iw);
+                                DATA_ADD(iw, -padding, iw);
+                                /* int ih = h * stride + kh * dilation - padding; */
+                                /* int iw = w * stride + kw * dilation - padding; */
 
                                 if (ih >= 0 && ih < in_shape[2] &&
                                     iw >= 0 && iw < in_shape[3]) {
                                     int idx1 = get_idx(data, (int[]){n, c_in, ih, iw});
                                     int idx2 = get_idx(&weight_st.tensor, (int[]){c_out,c_in,kh,kw});
-                                    sum += data->data[idx1] * wgt[idx2];
+                                    float temp;
+                                    DATA_MULT(data->data[idx1], wgt[idx2], temp);
+                                    DATA_ADD(sum, temp, sum);
+                                    /* sum += data->data[idx1] * wgt[idx2]; */
                                 }
                             }
                         }
@@ -236,14 +283,28 @@ void DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struc
                     // No inner channel loop - each channel processed independently
                     for (int kh = 0; kh < kernel_size; kh++) {
                         for (int kw = 0; kw < kernel_size; kw++) {
-                            int ih = h * stride + kh * dilation - padding;
-                            int iw = w * stride + kw * dilation - padding;
+                            int temp1, temp2;
+                            int ih, iw;
+                            DATA_MULT(h, stride, temp1);
+                            DATA_MULT(kh, dilation, temp2);
+                            DATA_ADD(temp1, temp2, ih);
+                            DATA_ADD(ih, -padding, ih);
+
+                            DATA_MULT(w, stride, temp1);
+                            DATA_MULT(kw, dilation, temp2);
+                            DATA_ADD(temp1, temp2, iw);
+                            DATA_ADD(iw, -padding, iw);
+                            /* int ih = h * stride + kh * dilation - padding; */
+                            /* int iw = w * stride + kw * dilation - padding; */
                             if (ih >= 0 && ih < in_shape[2] &&
                                 iw >= 0 && iw < in_shape[3]) {
                                 int idx1 = get_idx(data, (int[]){n, c, ih, iw});
                                 // Weight shape: [out_channels, 1, kh, kw] = [in_channels, 1, kh, kw]
                                 int idx2 = get_idx(&weight_st.tensor, (int[]){c, 0, kh, kw});
-                                sum += data->data[idx1] * wgt[idx2];
+                                float temp;
+                                DATA_MULT(data->data[idx1], wgt[idx2], temp);
+                                DATA_ADD(sum, temp, sum);
+                                /* sum += data->data[idx1] * wgt[idx2]; */
                             }
                         }
                     }
@@ -270,8 +331,15 @@ void BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, str
                 for (int w = 0; w < in_dim[3]; w++) {
                     int idx = get_idx(data, (int[]) {n, c_in, h, w});
                     float x = data->data[idx];
-                    float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps);
-                    out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in];
+
+                    float temp1;
+                    float temp2 = 1 / sqrt(V.tensor.data[c_in] + eps);
+                    DATA_ADD(x, -M.tensor.data[c_in], temp1);
+                    DATA_MULT(temp1, temp2, temp1);
+                    DATA_MULT(temp1, W.tensor.data[c_in], temp2);
+                    DATA_ADD(temp2, B.tensor.data[c_in], out_tensor.data[idx]);
+                    /* float norm_x = (x - M.tensor.data[c_in]) / sqrt(V.tensor.data[c_in] + eps); */
+                    /* out_tensor.data[idx] = norm_x * W.tensor.data[c_in] + B.tensor.data[c_in]; */
                 }
             }
         }
@@ -304,10 +372,14 @@ void AvgPool2d(struct Tensor *data, int kernel_size) {
                     for (int kh = 0; kh < kernel_size; kh++) {
                         for (int kw = 0; kw < kernel_size; kw++) {
                             int idx = get_idx(data, (int[]){n,c,stride * h + kh, stride * w + kw});
-                            sum += data->data[idx];
+                            DATA_ADD(sum, data->data[idx], sum);
+                            /* sum += data->data[idx]; */
                         }
                     }
-                    sum /= (kernel_size * kernel_size);
+                    float temp1 = (1.0f / (kernel_size * kernel_size));
+                    DATA_MULT(temp1, sum, sum);
+
+                    /* sum /= (kernel_size * kernel_size); */
                     int idx = get_idx(&out_tensor, (int[]){n,c,h,w});
                     out_tensor.data[idx] = sum;
                 }
@@ -332,10 +404,15 @@ void Linear(int in_features, int out_features, struct Parameter weight, struct P
             for (int i = 0; i < data->shape.dim[1]; i++) {
                 int idx1 = get_idx(data, (int[]){h,i});
                 int idx2 = get_idx(&weight.tensor, (int[]){w,i});
-                sum += data->data[idx1] * weight.tensor.data[idx2];
+
+                float temp;
+                DATA_MULT(data->data[idx1], weight.tensor.data[idx2], temp);
+                DATA_ADD(sum, temp, sum);
+                /* sum += data->data[idx1] * weight.tensor.data[idx2]; */
             }
             int idx = get_idx(&out_tensor, (int[]) {h,w});
-            out_tensor.data[idx] = sum + bias.tensor.data[w];
+            DATA_ADD(sum, bias.tensor.data[w], out_tensor.data[idx]);
+            /* out_tensor.data[idx] = sum + bias.tensor.data[w]; */
         }
     }
     destroy_tensor(data);
