@@ -164,7 +164,7 @@ void load_batch(int batch_num, struct Tensor *data) {
     // Sanity checking:
     fseek(f, 0, SEEK_END);
     int f_size = ftell(f);
-    int exp_size = (128 * 200 * 5 * 5) * (NUM_BATCHES - 1) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
+    int exp_size = (128 * 200 * 5 * 5) * (NUM_BATCHES) * sizeof(float) + (5 * 200 * 5 * 5 * sizeof(float));
     assert(f_size == exp_size);
     rewind(f);
     

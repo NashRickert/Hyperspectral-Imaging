@@ -10,12 +10,13 @@
 // Or doing some timing/benchmarking
 #define APPLY_LAYER(new_result) do {                                            \
         (new_result);                                                           \
-        printf("For this layer, the data_add, data_mult, idx_add, idx_mult, and relu local counters are:\n"); \
+        printf("For this operation, the local counters are:\n"); \
         printf("data_add: %" PRIu64 ", data_mult: %" PRIu64 ", idx_add: %" PRIu64 ", idx_mult: %" PRIu64 ", relu: %" PRIu64"\n", \
                data_add_ctr, data_mult_ctr, idx_add_ctr, idx_mult_ctr, relu_ctr); \
-        printf("For this layer, the global data_add, data_mult, idx_add, idx_mult, and relu counters are:\n"); \
-        printf("data_add: %" PRIu64 ", data_mult: %" PRIu64 ", idx_add: %" PRIu64 ", idx_mult: %" PRIu64 ", relu: %" PRIu64"\n", \
+        printf("For this operation, the global counters are:\n"); \
+        printf("data_add: %" PRIu64 ", data_mult: %" PRIu64 ", idx_add: %" PRIu64 ", idx_mult: %" PRIu64 ", relu: %" PRIu64"\n\n", \
                data_add_accum_ctr, data_mult_accum_ctr, idx_add_accum_ctr, idx_mult_accum_ctr, relu_accum_ctr); \
+        data_add_ctr = data_mult_ctr = idx_add_ctr = idx_mult_ctr = relu_ctr = 0; \
 } while(0)
 
 static int img_shape[4] = {1, 200, 5, 5};
@@ -27,7 +28,7 @@ static int img_shape[4] = {1, 200, 5, 5};
 // the layers inside of CNN.py
 
 void conv_layer1(struct Tensor *data) {
-    printf("\n\nInside of conv_layer1\n");
+    printf("Inside of conv_layer1\n");
     APPLY_LAYER(Conv3d(params[CONV10W_IDX], params[CONV10B_IDX], data, 16, 3, 1, 1, 1));
     APPLY_LAYER(ReLU(data));
     APPLY_LAYER(BatchNorm3d(params[CONV12W_IDX], params[CONV12B_IDX], params[CONV12MEAN_IDX], params[CONV12VAR_IDX], data));

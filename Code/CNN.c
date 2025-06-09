@@ -110,8 +110,11 @@ float ver_acc() {
 
 int main() {
 
-    ver_acc();
-    
+    full_weight_init();
+
+    struct Tensor data;
+    load_batch(0, &data);
+    forward(&data);
   
     return EXIT_SUCCESS;
 }

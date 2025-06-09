@@ -30,6 +30,7 @@ static struct Shape copy_shape(struct Shape shape) {
  * Does a ReLU calculation on data in accordance with the pytorch specification
  */
 void ReLU(struct Tensor *data) {
+    printf("Inside of relu\n");
     struct Shape shape = copy_shape(data->shape);
     struct Tensor out_tensor = construct_tensor(shape);
     RELU_ACCUM(out_tensor.len);
@@ -89,6 +90,7 @@ static struct Shape get_output_shape_Conv3d(struct Shape in_shape, int out_chann
 void Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                      int out_channels, int kernel_size, int padding, int stride, int dilation) {
     struct Tensor out_tensor = construct_tensor(get_output_shape_Conv3d(data->shape, out_channels, kernel_size, padding, stride, dilation));
+    printf("Inside of Conv3d\n");
 
     float *wgt = weight_st.tensor.data;
     float *bias = bias_st.tensor.data;
@@ -155,6 +157,7 @@ void Conv3d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
  * Performs the BatchNorm3d operation on data in accordance with the pytorch specification
  */
 void BatchNorm3d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor *data) {
+    printf("Inside of BatchNorm3d\n");
     const float eps = 1.0f / 100000.0;
     struct Tensor out_tensor = construct_tensor(copy_shape(data->shape));
     int *in_dim = data->shape.dim;
@@ -210,6 +213,7 @@ static struct Shape get_output_shape_Conv2d(struct Shape in_shape, int out_chann
  */
 void Conv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                      int out_channels, int kernel_size, int padding, int stride, int dilation) {
+    printf("Inside of Conv2d\n");
     struct Tensor out_tensor = construct_tensor(get_output_shape_Conv2d(data->shape, out_channels, kernel_size, padding, stride, dilation));
 
     float *wgt = weight_st.tensor.data;
@@ -267,6 +271,7 @@ void Conv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor 
  */
 void DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struct Tensor *data,
                               int kernel_size, int padding, int stride, int dilation) {
+    printf("Inside of DepthwiseConv2d\n");
     int in_channels = data->shape.dim[1];
     // For depthwise: out_channels = in_channels
     struct Tensor out_tensor = construct_tensor(get_output_shape_Conv2d(data->shape, in_channels, kernel_size, padding, stride, dilation));
@@ -322,6 +327,7 @@ void DepthwiseConv2d(struct Parameter weight_st, struct Parameter bias_st, struc
  * Performs the BatchNorm2d operation on data in accordance with the pytorch specification
  */
 void BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, struct Parameter V, struct Tensor *data) {
+    printf("Inside of BatchNorm2d\n");
     const float eps = 1.0f / 100000.0;
     struct Tensor out_tensor = construct_tensor(copy_shape(data->shape));
     int *in_dim = data->shape.dim;
@@ -352,6 +358,7 @@ void BatchNorm2d(struct Parameter W, struct Parameter B, struct Parameter M, str
  * Performs the AvgPool2d operation on data in accordance with the pytorch specification
  */
 void AvgPool2d(struct Tensor *data, int kernel_size) {
+    printf("Inside of AvgPool2d\n");
     int stride = kernel_size;
     int N = data->shape.dim[0];
     int C = data->shape.dim[1];
@@ -394,6 +401,7 @@ void AvgPool2d(struct Tensor *data, int kernel_size) {
  * Performs the Linear operation on data in accordance with the pytorch specification
  */
 void Linear(int in_features, int out_features, struct Parameter weight, struct Parameter bias, struct Tensor *data) {
+    printf("Inside of Linear\n");
     (void) in_features;
     struct Shape out_shape = copy_shape(data->shape);
     out_shape.dim[1] = out_features;
