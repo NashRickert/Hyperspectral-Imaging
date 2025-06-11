@@ -198,7 +198,7 @@ def test_acc():
 
 train = true
 if train:
-    results = model.fit(dataset, batch=1024, opt="LBFGS", steps=10, lamb=1e-4, lamb_entropy = 2e-01, metrics=(train_acc, test_acc), loss_fn=torch.nn.CrossEntropyLoss());
+    results = model.fit(dataset, batch=1024, opt="LBFGS", steps=100, lamb=1e-4, lamb_entropy = 2e-01, metrics=(train_acc, test_acc), loss_fn=torch.nn.CrossEntropyLoss());
     print("Training Accuracy:",results['train_acc'][-1])
     print("Test Accuracy:", results['test_acc'][-1])
 else:
