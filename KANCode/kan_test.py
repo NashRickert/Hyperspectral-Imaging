@@ -65,15 +65,33 @@ def compute_layer_output(layer):
 # print(len(model.act_fun))
 
 for i, func in enumerate(model.act_fun):
+    x = compute_layer_input(func)
+    print(x)
+    print(x.shape)
     y = compute_layer_output(func)
     y_flat = torch.flatten(y)
     
     c_val_shape = ffi.new("struct Shape *")
-    c_val_shape.len = 3
+    c_val_shape.len = 3  # also: = len(list(y.shape))
     c_val_shape.dim = ffi.new("int[]", list(y.shape))
 
     c_val_tens = ffi.new("struct Tensor *")
     c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
+
+    c_val_tens.data = ffi.new("float []", y_flat.tolist())
+
+    c_meta_shape = ffi.new("struct Shape *")
+    c_meta_shape.len = 2
+    c_meta_shape.dim = ffi.new("int[]", [len(y), 4])
+
+    c_meta_tens = ffi.new("struct Tensor *")
+    c_meta_tens[0] = lib.construct_tensor(c_val_shape[0])
+
+    # Need to do something to fill these fields for c_meta_tens
+    # Do this with the x var, use shape to make sure everything matches
+
+    # TODO: Just finish this loop, test inference
+    # note the concerning fact that I failed a malloc
 
     print(c_val_tens.shape.len)
 
