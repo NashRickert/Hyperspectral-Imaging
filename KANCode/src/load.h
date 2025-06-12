@@ -4,8 +4,7 @@
 
 #define TBL_SIZE 256
 
-/* extern const int width[NUM_LAYERS]; */
-/* extern const char *files[NUM_LAYERS]; */
+extern const int TABLE_SIZE;
 
 struct adder_tree {
     float *inputs;    // Stores the values we accumulate from previous layers in the tree
@@ -57,7 +56,20 @@ struct model {
 };
 
 
-/* float accumulate(struct adder_tree *tree); */
-/* float lookup(float x, struct lkup_tbl *table); */
+// @NOTE: NEW
+struct Shape {
+    int *dim;              // An array which holds the dimensions of the shape
+    int len;               // The length of the dim array
+};
+
+struct Tensor {
+    struct Shape shape;    // The shape of the tensor
+    float *data;           // The actual data of the tensor
+    int *prefixes;         // Shape prefixes, used for computing indices
+    int len;               // Length of the data array
+};
+
 
 struct model init_model(int *widths, int len);
+struct Tensor construct_tensor(struct Shape shape);
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);

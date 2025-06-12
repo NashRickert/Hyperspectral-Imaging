@@ -8,7 +8,9 @@ def build_extension():
     ffibuilder = FFI()
     ffibuilder.cdef("""
 
-    #define TBL_SIZE 256
+#define TBL_SIZE 256
+
+extern const int TABLE_SIZE;
 
 struct adder_tree {
     float *inputs;    // Stores the values we accumulate from previous layers in the tree
@@ -59,11 +61,23 @@ struct model {
     int len;                 // Len of the above buffer
 };
 
+struct Shape {
+    int *dim;              // An array which holds the dimensions of the shape
+    int len;               // The length of the dim array
+};
 
-void forward(struct model *model, float *input, int len, float **retbuf, int *retlen);
+struct Tensor {
+    struct Shape shape;    // The shape of the tensor
+    float *data;           // The actual data of the tensor
+    int *prefixes;         // Shape prefixes, used for computing indices
+    int len;               // Length of the data array
+};
 
 struct model init_model(int *widths, int len);
+struct Tensor construct_tensor(struct Shape shape);
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);
 
+void forward(struct model *model, float *input, int len, float **retbuf, int *retlen);
     """)
 
     ffibuilder.set_source(name,

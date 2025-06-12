@@ -5,6 +5,8 @@
 #include <stdlib.h>
 // Placeholder
 
+const int TABLE_SIZE = TBL_SIZE;
+
 /**
  * @brief initializes and returns a model with the correct number of layers,
  * nodes, etc. Notably does not initialize the lookup tables yet
@@ -61,4 +63,120 @@ struct model init_model(int *widths, int len) {
  */
 void cleanup_model(struct model model) {
     return;
+}
+
+
+/**
+ * Takes a tensor and array of indices appropriate for the shape of the tensor
+ * Returns the corresponding index of the entry in a 1d representation of the tensor
+ * Note that we must have len(idxs) = tensor.shape.len
+ * Also must have that 0 <= idxs[i] < shape.dim[i]
+ */ 
+int get_idx(struct Tensor *tensor, int *idxs) {
+    int sum = 0;
+    for (int i = 0; i < tensor->shape.len; i++) {
+        int temp;
+        sum += tensor->prefixes[i] * idxs[i];
+    }
+    return sum;
+}
+
+
+/**
+ * Multiplies the elements of the shape to get the len of the associated tensor
+ */
+static int get_size(struct Shape shape) {
+    int size = 1;
+    for (int i = 0; i < shape.len; i++) {
+        size *= shape.dim[i];
+    }
+    return size;
+}
+
+
+/**
+ * Does the computation of prefixes associated with a shape
+ * Prefixes are useful for calculating indexes, thus it is useful to store them
+ * As a part of our tensor
+ */
+static int *compute_prefixes(struct Shape shape) {
+    int dim_len = shape.len;
+    int *dimensions = shape.dim;
+    int *prefixes = (int *) malloc(sizeof(int) * dim_len);
+
+    for (int i = dim_len - 1; i >= 0; i--) {
+        if (i == dim_len - 1) {
+            prefixes[i] = 1;
+            continue;
+        }
+        prefixes[i] = prefixes[i + 1] * dimensions[i+1];
+    }
+
+    return prefixes;
+}
+
+/**
+ * Constructs a tensor based on the passed shape parameter
+ * The tensor uses the parameter shape itself in its shape field, so one should not reuse
+ * shapes to create multiple tensors, otherwise their dimension arrays will be shared
+ * This is all possible because everything about a tensor is uniquely determined by its shape
+ * (Except its data values which will need to be filled in by the caller)
+ */
+struct Tensor construct_tensor(struct Shape shape) {
+    int *prefixes = compute_prefixes(shape);
+    int length = get_size(shape);
+    float *data = (float *) malloc(sizeof(float) * length);
+    if (data == NULL) {
+        printf("Failed to successfully malloc\n");
+        exit(EXIT_FAILURE);
+    }
+    struct Tensor tens = {
+        .shape = shape,
+        .data = data,
+        .prefixes = prefixes,
+        .len = length,
+    };
+    return tens;
+}
+
+/**
+ * @brief This function initializes all the lookup tables in a layer based on tensors passed from
+ * python
+ * @param tbl_vals: Of shape (TBL_SIZE, layer_len, next layer_len)
+ * For tens[i,j,k], holds the ith table value of the act_func for the jth node on this layer going
+ * to the kth node on the next layer
+ * @param lkup_meta_info: Of shape (layer_len, 4). Holds the additional 4 pieces of meta info
+ * For each nodes lookup tables: xmin, xmax, xdist, inv_xdist in that order.
+ * Should be the same for every node
+ * @param layer: The layer of our model we are targetting
+ */
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer) {
+    assert(tbl_vals->shape.len == 3);
+    assert(tbl_vals->shape.dim[0] == TBL_SIZE);
+    assert(tbl_vals->shape.dim[1] == layer->len);
+    assert(tbl_vals->shape.dim[2] == layer->nodes[0].next_layer->len);
+    assert(lkup_meta_info->shape.len == 2);
+    assert(lkup_meta_info->shape.dim[0] == layer->len);
+    assert(lkup_meta_info->shape.dim[1] == 4);
+
+    for (int i = 0; i < layer->len; i++) {
+        struct node *node = layer->nodes + i;
+        float xmin = get_idx(lkup_meta_info, (int[]) {i, 0});
+        float xmax = get_idx(lkup_meta_info, (int[]) {i, 1});
+        float xdist = get_idx(lkup_meta_info, (int[]) {i, 2});
+        float inv_xdist = get_idx(lkup_meta_info, (int[]) {i, 3});
+
+        for (int j = 0; j < node->len; j++) {
+            struct act_fun *func = node->funcs + j;
+            for (int k = 0; k < TBL_SIZE; k++) {
+                float yval = get_idx(tbl_vals, (int[]){k, i, j});
+                func->table.tbl[k] = yval;
+
+                func->table.xmin = xmin;
+                func->table.xmax = xmax;
+                func->table.xdist = xdist;
+                func->table.inv_xdist = inv_xdist;
+            }
+        }
+    }
 }

@@ -578,31 +578,140 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 /************************************************************/
 
 static void *_cffi_types[] = {
-/*  0 */ _CFFI_OP(_CFFI_OP_FUNCTION, 20), // struct model()(int *, int)
-/*  1 */ _CFFI_OP(_CFFI_OP_POINTER, 2), // int *
-/*  2 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7), // int
-/*  3 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/*  4 */ _CFFI_OP(_CFFI_OP_FUNCTION, 23), // void()(struct model *, float *, int, float * *, int *)
-/*  5 */ _CFFI_OP(_CFFI_OP_POINTER, 20), // struct model *
-/*  6 */ _CFFI_OP(_CFFI_OP_POINTER, 11), // float *
-/*  7 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
-/*  8 */ _CFFI_OP(_CFFI_OP_POINTER, 6), // float * *
-/*  9 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
-/* 10 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 11 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 13), // float
-/* 12 */ _CFFI_OP(_CFFI_OP_ARRAY, 11), // float[256]
-/* 13 */ (_cffi_opcode_t)(256),
-/* 14 */ _CFFI_OP(_CFFI_OP_POINTER, 15), // struct act_fun *
-/* 15 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 0), // struct act_fun
-/* 16 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 1), // struct adder_tree
-/* 17 */ _CFFI_OP(_CFFI_OP_POINTER, 18), // struct layer *
-/* 18 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 2), // struct layer
-/* 19 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 3), // struct lkup_tbl
-/* 20 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 4), // struct model
-/* 21 */ _CFFI_OP(_CFFI_OP_POINTER, 22), // struct node *
-/* 22 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 5), // struct node
-/* 23 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
+/*  0 */ _CFFI_OP(_CFFI_OP_FUNCTION, 22), // struct Tensor()(struct Shape)
+/*  1 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 0), // struct Shape
+/*  2 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/*  3 */ _CFFI_OP(_CFFI_OP_FUNCTION, 28), // struct model()(int *, int)
+/*  4 */ _CFFI_OP(_CFFI_OP_POINTER, 5), // int *
+/*  5 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7), // int
+/*  6 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/*  7 */ _CFFI_OP(_CFFI_OP_FUNCTION, 31), // void()(struct Tensor *, struct Tensor *, struct layer *)
+/*  8 */ _CFFI_OP(_CFFI_OP_POINTER, 22), // struct Tensor *
+/*  9 */ _CFFI_OP(_CFFI_OP_NOOP, 8),
+/* 10 */ _CFFI_OP(_CFFI_OP_POINTER, 26), // struct layer *
+/* 11 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 12 */ _CFFI_OP(_CFFI_OP_FUNCTION, 31), // void()(struct model *, float *, int, float * *, int *)
+/* 13 */ _CFFI_OP(_CFFI_OP_POINTER, 28), // struct model *
+/* 14 */ _CFFI_OP(_CFFI_OP_POINTER, 19), // float *
+/* 15 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
+/* 16 */ _CFFI_OP(_CFFI_OP_POINTER, 14), // float * *
+/* 17 */ _CFFI_OP(_CFFI_OP_NOOP, 4),
+/* 18 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 19 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 13), // float
+/* 20 */ _CFFI_OP(_CFFI_OP_ARRAY, 19), // float[256]
+/* 21 */ (_cffi_opcode_t)(256),
+/* 22 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 1), // struct Tensor
+/* 23 */ _CFFI_OP(_CFFI_OP_POINTER, 24), // struct act_fun *
+/* 24 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 2), // struct act_fun
+/* 25 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 3), // struct adder_tree
+/* 26 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 4), // struct layer
+/* 27 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 5), // struct lkup_tbl
+/* 28 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 6), // struct model
+/* 29 */ _CFFI_OP(_CFFI_OP_POINTER, 30), // struct node *
+/* 30 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 7), // struct node
+/* 31 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
 };
+
+static int _cffi_const_TABLE_SIZE(unsigned long long *o)
+{
+  int n = (TABLE_SIZE) <= 0;
+  *o = (unsigned long long)((TABLE_SIZE) | 0);  /* check that TABLE_SIZE is an integer */
+  return n;
+}
+
+static struct Tensor _cffi_d_construct_tensor(struct Shape x0)
+{
+  return construct_tensor(x0);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_construct_tensor(PyObject *self, PyObject *arg0)
+{
+  struct Shape x0;
+  struct Tensor result;
+  PyObject *pyresult;
+
+  if (_cffi_to_c((char *)&x0, _cffi_type(1), arg0) < 0)
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = construct_tensor(x0); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_struct((char *)&result, _cffi_type(22));
+  return pyresult;
+}
+#else
+static void _cffi_f_construct_tensor(struct Tensor *result, struct Shape *x0)
+{
+  { *result = construct_tensor(*x0); }
+}
+#endif
+
+static void _cffi_d_fill_lkup_tables(struct Tensor * x0, struct Tensor * x1, struct layer * x2)
+{
+  fill_lkup_tables(x0, x1, x2);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_fill_lkup_tables(PyObject *self, PyObject *args)
+{
+  struct Tensor * x0;
+  struct Tensor * x1;
+  struct layer * x2;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+
+  if (!PyArg_UnpackTuple(args, "fill_lkup_tables", 3, 3, &arg0, &arg1, &arg2))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(8), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct Tensor *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(8), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(8), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (struct Tensor *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(8), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(10), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (struct layer *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(10), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { fill_lkup_tables(x0, x1, x2); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_fill_lkup_tables _cffi_d_fill_lkup_tables
+#endif
 
 static void _cffi_d_forward(struct model * x0, float * x1, int x2, float * * x3, int * x4)
 {
@@ -629,19 +738,19 @@ _cffi_f_forward(PyObject *self, PyObject *args)
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(5), arg0, (char **)&x0);
+      _cffi_type(13), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (struct model *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(5), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(13), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(6), arg1, (char **)&x1);
+      _cffi_type(14), arg1, (char **)&x1);
   if (datasize != 0) {
     x1 = ((size_t)datasize) <= 640 ? (float *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(6), arg1, (char **)&x1,
+    if (_cffi_convert_array_argument(_cffi_type(14), arg1, (char **)&x1,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -651,19 +760,19 @@ _cffi_f_forward(PyObject *self, PyObject *args)
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(8), arg3, (char **)&x3);
+      _cffi_type(16), arg3, (char **)&x3);
   if (datasize != 0) {
     x3 = ((size_t)datasize) <= 640 ? (float * *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(8), arg3, (char **)&x3,
+    if (_cffi_convert_array_argument(_cffi_type(16), arg3, (char **)&x3,
             datasize, &large_args_free) < 0)
       return NULL;
   }
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(1), arg4, (char **)&x4);
+      _cffi_type(4), arg4, (char **)&x4);
   if (datasize != 0) {
     x4 = ((size_t)datasize) <= 640 ? (int *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+    if (_cffi_convert_array_argument(_cffi_type(4), arg4, (char **)&x4,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -704,10 +813,10 @@ _cffi_f_init_model(PyObject *self, PyObject *args)
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(1), arg0, (char **)&x0);
+      _cffi_type(4), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (int *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(4), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -723,7 +832,7 @@ _cffi_f_init_model(PyObject *self, PyObject *args)
   Py_END_ALLOW_THREADS
 
   (void)self; /* unused */
-  pyresult = _cffi_from_c_struct((char *)&result, _cffi_type(20));
+  pyresult = _cffi_from_c_struct((char *)&result, _cffi_type(28));
   if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
   return pyresult;
 }
@@ -742,6 +851,28 @@ static int _cffi_const_TBL_SIZE(unsigned long long *o)
     n |= 2;
   return n;
 }
+
+_CFFI_UNUSED_FN
+static void _cffi_checkfld_struct_Shape(struct Shape *p)
+{
+  /* only to generate compile-time warnings or errors */
+  (void)p;
+  { int * *tmp = &p->dim; (void)tmp; }
+  (void)((p->len) | 0);  /* check that 'struct Shape.len' is an integer */
+}
+struct _cffi_align_struct_Shape { char x; struct Shape y; };
+
+_CFFI_UNUSED_FN
+static void _cffi_checkfld_struct_Tensor(struct Tensor *p)
+{
+  /* only to generate compile-time warnings or errors */
+  (void)p;
+  { struct Shape *tmp = &p->shape; (void)tmp; }
+  { float * *tmp = &p->data; (void)tmp; }
+  { int * *tmp = &p->prefixes; (void)tmp; }
+  (void)((p->len) | 0);  /* check that 'struct Tensor.len' is an integer */
+}
+struct _cffi_align_struct_Tensor { char x; struct Tensor y; };
 
 _CFFI_UNUSED_FN
 static void _cffi_checkfld_struct_act_fun(struct act_fun *p)
@@ -812,87 +943,112 @@ static void _cffi_checkfld_struct_node(struct node *p)
 struct _cffi_align_struct_node { char x; struct node y; };
 
 static const struct _cffi_global_s _cffi_globals[] = {
+  { "TABLE_SIZE", (void *)_cffi_const_TABLE_SIZE, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
   { "TBL_SIZE", (void *)_cffi_const_TBL_SIZE, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
-  { "forward", (void *)_cffi_f_forward, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 4), (void *)_cffi_d_forward },
-  { "init_model", (void *)_cffi_f_init_model, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_init_model },
+  { "construct_tensor", (void *)_cffi_f_construct_tensor, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 0), (void *)_cffi_d_construct_tensor },
+  { "fill_lkup_tables", (void *)_cffi_f_fill_lkup_tables, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 7), (void *)_cffi_d_fill_lkup_tables },
+  { "forward", (void *)_cffi_f_forward, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 12), (void *)_cffi_d_forward },
+  { "init_model", (void *)_cffi_f_init_model, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 3), (void *)_cffi_d_init_model },
 };
 
 static const struct _cffi_field_s _cffi_fields[] = {
+  { "dim", offsetof(struct Shape, dim),
+           sizeof(((struct Shape *)0)->dim),
+           _CFFI_OP(_CFFI_OP_NOOP, 4) },
+  { "len", offsetof(struct Shape, len),
+           sizeof(((struct Shape *)0)->len),
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
+  { "shape", offsetof(struct Tensor, shape),
+             sizeof(((struct Tensor *)0)->shape),
+             _CFFI_OP(_CFFI_OP_NOOP, 1) },
+  { "data", offsetof(struct Tensor, data),
+            sizeof(((struct Tensor *)0)->data),
+            _CFFI_OP(_CFFI_OP_NOOP, 14) },
+  { "prefixes", offsetof(struct Tensor, prefixes),
+                sizeof(((struct Tensor *)0)->prefixes),
+                _CFFI_OP(_CFFI_OP_NOOP, 4) },
+  { "len", offsetof(struct Tensor, len),
+           sizeof(((struct Tensor *)0)->len),
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "table", offsetof(struct act_fun, table),
              sizeof(((struct act_fun *)0)->table),
-             _CFFI_OP(_CFFI_OP_NOOP, 19) },
+             _CFFI_OP(_CFFI_OP_NOOP, 27) },
   { "inputs", offsetof(struct adder_tree, inputs),
               sizeof(((struct adder_tree *)0)->inputs),
-              _CFFI_OP(_CFFI_OP_NOOP, 6) },
+              _CFFI_OP(_CFFI_OP_NOOP, 14) },
   { "len", offsetof(struct adder_tree, len),
            sizeof(((struct adder_tree *)0)->len),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "ptr", offsetof(struct adder_tree, ptr),
            sizeof(((struct adder_tree *)0)->ptr),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "nodes", offsetof(struct layer, nodes),
              sizeof(((struct layer *)0)->nodes),
-             _CFFI_OP(_CFFI_OP_NOOP, 21) },
+             _CFFI_OP(_CFFI_OP_NOOP, 29) },
   { "len", offsetof(struct layer, len),
            sizeof(((struct layer *)0)->len),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "idx", offsetof(struct layer, idx),
            sizeof(((struct layer *)0)->idx),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "tbl", offsetof(struct lkup_tbl, tbl),
            sizeof(((struct lkup_tbl *)0)->tbl),
-           _CFFI_OP(_CFFI_OP_NOOP, 12) },
+           _CFFI_OP(_CFFI_OP_NOOP, 20) },
   { "xmin", offsetof(struct lkup_tbl, xmin),
             sizeof(((struct lkup_tbl *)0)->xmin),
-            _CFFI_OP(_CFFI_OP_NOOP, 11) },
+            _CFFI_OP(_CFFI_OP_NOOP, 19) },
   { "xmax", offsetof(struct lkup_tbl, xmax),
             sizeof(((struct lkup_tbl *)0)->xmax),
-            _CFFI_OP(_CFFI_OP_NOOP, 11) },
+            _CFFI_OP(_CFFI_OP_NOOP, 19) },
   { "xdist", offsetof(struct lkup_tbl, xdist),
              sizeof(((struct lkup_tbl *)0)->xdist),
-             _CFFI_OP(_CFFI_OP_NOOP, 11) },
+             _CFFI_OP(_CFFI_OP_NOOP, 19) },
   { "inv_xdist", offsetof(struct lkup_tbl, inv_xdist),
                  sizeof(((struct lkup_tbl *)0)->inv_xdist),
-                 _CFFI_OP(_CFFI_OP_NOOP, 11) },
+                 _CFFI_OP(_CFFI_OP_NOOP, 19) },
   { "layers", offsetof(struct model, layers),
               sizeof(((struct model *)0)->layers),
-              _CFFI_OP(_CFFI_OP_NOOP, 17) },
+              _CFFI_OP(_CFFI_OP_NOOP, 10) },
   { "len", offsetof(struct model, len),
            sizeof(((struct model *)0)->len),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "tree", offsetof(struct node, tree),
             sizeof(((struct node *)0)->tree),
-            _CFFI_OP(_CFFI_OP_NOOP, 16) },
+            _CFFI_OP(_CFFI_OP_NOOP, 25) },
   { "val", offsetof(struct node, val),
            sizeof(((struct node *)0)->val),
-           _CFFI_OP(_CFFI_OP_NOOP, 11) },
+           _CFFI_OP(_CFFI_OP_NOOP, 19) },
   { "funcs", offsetof(struct node, funcs),
              sizeof(((struct node *)0)->funcs),
-             _CFFI_OP(_CFFI_OP_NOOP, 14) },
+             _CFFI_OP(_CFFI_OP_NOOP, 23) },
   { "targets", offsetof(struct node, targets),
                sizeof(((struct node *)0)->targets),
-               _CFFI_OP(_CFFI_OP_NOOP, 1) },
+               _CFFI_OP(_CFFI_OP_NOOP, 4) },
   { "len", offsetof(struct node, len),
            sizeof(((struct node *)0)->len),
-           _CFFI_OP(_CFFI_OP_NOOP, 2) },
+           _CFFI_OP(_CFFI_OP_NOOP, 5) },
   { "next_layer", offsetof(struct node, next_layer),
                   sizeof(((struct node *)0)->next_layer),
-                  _CFFI_OP(_CFFI_OP_NOOP, 17) },
+                  _CFFI_OP(_CFFI_OP_NOOP, 10) },
 };
 
 static const struct _cffi_struct_union_s _cffi_struct_unions[] = {
-  { "act_fun", 15, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct act_fun), offsetof(struct _cffi_align_struct_act_fun, y), 0, 1 },
-  { "adder_tree", 16, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct adder_tree), offsetof(struct _cffi_align_struct_adder_tree, y), 1, 3 },
-  { "layer", 18, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct layer), offsetof(struct _cffi_align_struct_layer, y), 4, 3 },
-  { "lkup_tbl", 19, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct lkup_tbl), offsetof(struct _cffi_align_struct_lkup_tbl, y), 7, 5 },
-  { "model", 20, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct model), offsetof(struct _cffi_align_struct_model, y), 12, 2 },
-  { "node", 22, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct node), offsetof(struct _cffi_align_struct_node, y), 14, 6 },
+  { "Shape", 1, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct Shape), offsetof(struct _cffi_align_struct_Shape, y), 0, 2 },
+  { "Tensor", 22, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct Tensor), offsetof(struct _cffi_align_struct_Tensor, y), 2, 4 },
+  { "act_fun", 24, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct act_fun), offsetof(struct _cffi_align_struct_act_fun, y), 6, 1 },
+  { "adder_tree", 25, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct adder_tree), offsetof(struct _cffi_align_struct_adder_tree, y), 7, 3 },
+  { "layer", 26, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct layer), offsetof(struct _cffi_align_struct_layer, y), 10, 3 },
+  { "lkup_tbl", 27, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct lkup_tbl), offsetof(struct _cffi_align_struct_lkup_tbl, y), 13, 5 },
+  { "model", 28, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct model), offsetof(struct _cffi_align_struct_model, y), 18, 2 },
+  { "node", 30, _CFFI_F_CHECK_FIELDS,
+    sizeof(struct node), offsetof(struct _cffi_align_struct_node, y), 20, 6 },
 };
 
 static const struct _cffi_type_context_s _cffi_type_context = {
@@ -902,12 +1058,12 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   _cffi_struct_unions,
   NULL,  /* no enums */
   NULL,  /* no typenames */
-  3,  /* num_globals */
-  6,  /* num_struct_unions */
+  6,  /* num_globals */
+  8,  /* num_struct_unions */
   0,  /* num_enums */
   0,  /* num_typenames */
   NULL,  /* no includes */
-  24,  /* num_types */
+  32,  /* num_types */
   0,  /* flags */
 };
 
