@@ -181,19 +181,14 @@ void destroy_tensor(struct Tensor *data) {
  * @param layer: The layer of our model we are targetting
  */
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer) {
-    printf("%s\n", __func__);
-    printf("%p\n", layer);
     assert(tbl_vals->shape.len == 3);
     assert(tbl_vals->shape.dim[0] == TBL_SIZE);
     assert(tbl_vals->shape.dim[1] == layer->len);
     assert(tbl_vals->shape.dim[2] == layer->nodes[0].next_layer->len);
     assert(lkup_meta_info->shape.len == 2);
-    /* printf("%d, %d\n", (int) lkup_meta_info->shape.dim[0], (int) lkup_meta_info->shape.dim[1]); */
-    printf("%d   %d\n", lkup_meta_info->shape.dim[0], layer->len);
     assert(lkup_meta_info->shape.dim[0] == layer->len);
     assert(lkup_meta_info->shape.dim[1] == 4);
 
-    printf("%d, %d\n", (int) lkup_meta_info->shape.dim[0], (int) lkup_meta_info->shape.dim[1]);
     for (int i = 0; i < layer->len; i++) {
         struct node *node = layer->nodes + i;
 
@@ -201,21 +196,14 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
         float xmax = lkup_meta_info->data[layer->len * 1 + i];
         float xdist = lkup_meta_info->data[layer->len * 2 + i];
         float inv_xdist = lkup_meta_info->data[layer->len * 3 + i];
-        /* float xmin = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 0})]; */
-        /* float xmax = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 1})]; */
-        /* float xdist = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 2})]; */
-        /* float inv_xdist = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 3})]; */
-        /* float xmin = lkup_meta_info */
-        printf("xmin, xmax, xdist, inv_xdist, %f, %f, %f, %f\n", xmin, xmax, xdist, inv_xdist);
-        /* printf("%f, %f\n", lkup_meta_info->data[0], lkup_meta_info->data[1]); */
-      
-        /* printf("Got index from meta\n"); */
+        /* printf("xmin, xmax, xdist, inv_xdist, %f, %f, %f, %f\n", xmin, xmax, xdist, inv_xdist); */
 
         for (int j = 0; j < node->len; j++) {
             struct act_fun *func = node->funcs + j;
+            /* printf("\n\n"); */
             for (int k = 0; k < TBL_SIZE; k++) {
                 float yval = lkup_meta_info->data[get_idx(tbl_vals, (int[]){k, i, j})];
-                /* printf("Got index from values\n"); */
+                /* printf("%f ", yval); */
                 func->table.tbl[k] = yval;
 
                 func->table.xmin = xmin;
