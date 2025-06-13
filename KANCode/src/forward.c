@@ -136,7 +136,7 @@ static void ret_node_vals(struct layer *layer, float **retbuf, int *retlen) {
  */
 void forward(struct model *model, float *input, int len, float **retbuf, int *retlen) {
     assert(len == model->layers->len);
-    // Initializes the input values for th efirst layer
+    // Initializes the input values for the first layer
     for (int i = 0; i < len; i++) {
         struct node *node = model->layers->nodes + i;
         node->val = input[i];

@@ -76,17 +76,26 @@ struct Tensor {
 struct model init_model(int *widths, int len);
 struct Tensor construct_tensor(struct Shape shape);
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);
+void destroy_tensor(struct Tensor *data);
 
 void forward(struct model *model, float *input, int len, float **retbuf, int *retlen);
     """)
 
     ffibuilder.set_source(name,
                          f"""
+#ifdef NDEBUG
+#warning "NDEBUG is defined"
+#else
+#warning "NDEBUG is NOT defined"
+#endif
+
         #include "{path}forward.h"
         #include "{path}load.h"
                          """,
                          sources = [path + 'forward.c', path + 'load.c'],
-                         libraries=['m'])
+                         libraries=['m'],
+                         # necessary to get asserts to work skull
+                         extra_compile_args=['-UNDEBUG'])
     return ffibuilder
 
 

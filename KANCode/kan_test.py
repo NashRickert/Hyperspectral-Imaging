@@ -16,27 +16,11 @@ width = [200, 32, 32, 32, 16]
 
 model.load_state_dict(torch.load('temp_model.pt', map_location=device))
         
-# For now I just define this here. In the future, it would be better to sync this with a C code through a global var
-# Eg make a macro for it, define a global var to be equal to the macro, expose the global var in this code with cffi
+# Done to sync C macro def with this code (Macro became global var accessible here)
 TBL_SIZE = lib.TABLE_SIZE
 
 c_model = ffi.new("struct model *")
 c_model = lib.init_model(width, len(width))
-# print(c_model.len)
-# for i in range(c_model.len):
-#     layer = ffi.new("struct layer *", c_model.layers[i])
-#     print("layer idx:" + str(layer.idx))
-#     print("layer len:" + str(layer.len))
-    # for i in range(layer.len):
-        
-# print(len(model.width) - 1)
-# print(model.act_fun)
-# layer = model.act_fun[0]
-# print(layer.grid)
-# print(layer.grid.shape)
-
-# print(layer.coef)
-# print(layer.coef.shape)
 
 # Accepts something like model.act_fun[i], a layer of input
 def compute_layer_input(layer):
@@ -59,54 +43,72 @@ def compute_layer_output(layer):
         y = coef2curve(x, layer.grid, layer.coef, k)
     return y.to(device)
 
-# y = compute_layer_output(layer)
-# print(y)
-# print(y.shape)
-# print(len(model.act_fun))
+def get_meta_info(layer):
+    x = compute_layer_input(layer)
+    mins = torch.min(x, dim=0).values
+    maxs = torch.max(x, dim=0).values
+    xdists = (maxs - mins) / TBL_SIZE
+    inv_xdists = (1 / xdists)
 
+    meta_info = torch.cat((mins, maxs, xdists, inv_xdists))
+    return meta_info
+    
+# May have to look into doing ffi.gc for tensor allocations (construct tensor in combination with destroy tensor)
+# If I want to make this into a function (which I should) then I might have to try using a weak dict or something
+# To store references. Otherwise I think it would be really challenging to keep everything in scope
 for i, func in enumerate(model.act_fun):
-    x = compute_layer_input(func)
-    print(x)
-    print(x.shape)
     y = compute_layer_output(func)
     y_flat = torch.flatten(y)
     
     c_val_shape = ffi.new("struct Shape *")
     c_val_shape.len = 3  # also: = len(list(y.shape))
-    c_val_shape.dim = ffi.new("int[]", list(y.shape))
+    # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
+    dim1 = ffi.new("int[]", list(y.shape))
+    c_val_shape.dim = dim1
+    # print("desired shape: ", c_val_shape.dim[0], c_val_shape.dim[1], c_val_shape.dim[2])
 
     c_val_tens = ffi.new("struct Tensor *")
     c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
 
     c_val_tens.data = ffi.new("float []", y_flat.tolist())
 
+    # print("actual shape: ", c_val_tens.shape.dim[0], c_val_tens.shape.dim[1], c_val_tens.shape.dim[2])
+
     c_meta_shape = ffi.new("struct Shape *")
     c_meta_shape.len = 2
-    c_meta_shape.dim = ffi.new("int[]", [len(y), 4])
+    dim2 = ffi.new("int[]", [width[i], 4])
+    c_meta_shape.dim = dim2
 
     c_meta_tens = ffi.new("struct Tensor *")
-    c_meta_tens[0] = lib.construct_tensor(c_val_shape[0])
+    c_meta_tens[0] = lib.construct_tensor(c_meta_shape[0])
 
-    # Need to do something to fill these fields for c_meta_tens
-    # Do this with the x var, use shape to make sure everything matches
+    # print(c_meta_tens.shape.dim[0], c_meta_tens.shape.dim[1])
+    # print(c_meta_tens.prefixes[0], c_meta_tens.prefixes[1])
 
-    # TODO: Just finish this loop, test inference
-    # note the concerning fact that I failed a malloc
+    meta_info = get_meta_info(func)
+    mi = meta_info.tolist()
+    # print(mi[0], mi[1], mi[2], mi[3])
 
-    print(c_val_tens.shape.len)
+    c_meta_tens.data = ffi.new("float []", meta_info.tolist())
+    # print(c_meta_tens.data[0], c_meta_tens.data[1], c_meta_tens.data[2], c_meta_tens.data[3])
+
+    # print(ffi.addressof(c_model.layers[i]))
+    lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.addressof(c_model.layers[i]))
+    # print(c_val_tens.shape.len)
 
     
-# print(x)
-# model(x)
+def print_cmodel_info(c_model):
+    # for i in range(c_model.len):
+    for i in range(len(width) - 1):
+        layer = c_model.layers[i]
+        print(f"In layer {i} with length {layer.len} and self index {layer.idx}")
+        for j in range(layer.len):
+            nodes = layer.nodes[j]
+            print(f"In the {j}th node with value {nodes.val}, target length {nodes.len}")
+            table = nodes.funcs[0].table
+            print(f"Our xmax, xmin, xdist, and inv_xdist respectively are {table.xmin}, {table.xmax}, {table.xdist}, {table.inv_xdist}")
+            for k in range(nodes.len):
+                print(f"Our targets are {nodes.targets[k]}")
+            
 
-# Note to self: I am struggling to find in the documentation how I can access, get the range, and run the forward pass on a single activation layer. This is kind of being a pain in my butt
-
-# def make_buf(arr, type):
-#     length = len(arr)
-#     x = ffi.new(f"{type}[{length}]")
-#     print(x)
-#     for i, el in enumerate(arr):
-#         print(i)
-#         print(arr[i])
-#         x[i] = int(el)
-#     return x
+print_cmodel_info(c_model)

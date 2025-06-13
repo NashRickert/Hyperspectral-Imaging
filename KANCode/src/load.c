@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 // Placeholder
 
 const int TABLE_SIZE = TBL_SIZE;
@@ -14,11 +15,20 @@ const int TABLE_SIZE = TBL_SIZE;
  * @params len is the length of the aforementioned buffer
  */
 // I think this is done, but obviously will need to check later
+// Note: I think we're not properly initializing the nodes after this correctly (?)
 struct model init_model(int *widths, int len) {
     struct layer *layers = (struct layer *) malloc(sizeof(struct layer) * len);
+    if (!layers) {
+        printf("Malloc failed, init_model");
+        exit(EXIT_FAILURE);
+    }
     struct model model = {.layers = layers, .len = len};
     for (int i = 0; i < len; i++) {
         struct node *nodes = (struct node *) malloc(sizeof(struct node) * widths[i]);
+        if (!nodes) {
+            printf("Malloc failed, init_model");
+            exit(EXIT_FAILURE);
+        }
         layers[i].len = widths[i];
         layers[i].idx = i;
         for (int j = 0; j < widths[i]; j++) {
@@ -28,6 +38,10 @@ struct model init_model(int *widths, int len) {
                 node->tree.inputs = NULL;
             } else {
                 node->tree.inputs = (float *) malloc(sizeof(float) * widths[i - 1]);
+                if (!node->tree.inputs) {
+                    printf("Malloc failed, init_model");
+                    exit(EXIT_FAILURE);
+                }
                 node->tree.len = widths[i - 1];
                 node->tree.ptr = 0;
             }
@@ -48,6 +62,8 @@ struct model init_model(int *widths, int len) {
                     node->targets[k] = k;
                 }
                 node->funcs = (struct act_fun *) malloc(sizeof(struct act_fun) * targ_len);
+
+                node->len = targ_len;
 
                 node->next_layer = layers + i + 1;
             }
@@ -130,13 +146,27 @@ struct Tensor construct_tensor(struct Shape shape) {
         printf("Failed to successfully malloc\n");
         exit(EXIT_FAILURE);
     }
+
+    int *dim_copy = (int *) malloc(sizeof(int) * shape.len);
+    if (dim_copy == NULL) {
+        printf("Failed to successfully malloc\n");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(dim_copy, shape.dim, sizeof(int) * shape.len);
+
     struct Tensor tens = {
-        .shape = shape,
+        .shape = {.len = shape.len, .dim = dim_copy},
         .data = data,
         .prefixes = prefixes,
         .len = length,
     };
     return tens;
+}
+
+void destroy_tensor(struct Tensor *data) {
+    free(data->shape.dim);
+    free(data->data);
+    free(data->prefixes);
 }
 
 /**
@@ -151,25 +181,41 @@ struct Tensor construct_tensor(struct Shape shape) {
  * @param layer: The layer of our model we are targetting
  */
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer) {
+    printf("%s\n", __func__);
+    printf("%p\n", layer);
     assert(tbl_vals->shape.len == 3);
     assert(tbl_vals->shape.dim[0] == TBL_SIZE);
     assert(tbl_vals->shape.dim[1] == layer->len);
     assert(tbl_vals->shape.dim[2] == layer->nodes[0].next_layer->len);
     assert(lkup_meta_info->shape.len == 2);
+    /* printf("%d, %d\n", (int) lkup_meta_info->shape.dim[0], (int) lkup_meta_info->shape.dim[1]); */
+    printf("%d   %d\n", lkup_meta_info->shape.dim[0], layer->len);
     assert(lkup_meta_info->shape.dim[0] == layer->len);
     assert(lkup_meta_info->shape.dim[1] == 4);
 
+    printf("%d, %d\n", (int) lkup_meta_info->shape.dim[0], (int) lkup_meta_info->shape.dim[1]);
     for (int i = 0; i < layer->len; i++) {
         struct node *node = layer->nodes + i;
-        float xmin = get_idx(lkup_meta_info, (int[]) {i, 0});
-        float xmax = get_idx(lkup_meta_info, (int[]) {i, 1});
-        float xdist = get_idx(lkup_meta_info, (int[]) {i, 2});
-        float inv_xdist = get_idx(lkup_meta_info, (int[]) {i, 3});
+
+        float xmin = lkup_meta_info->data[layer->len * 0 + i];
+        float xmax = lkup_meta_info->data[layer->len * 1 + i];
+        float xdist = lkup_meta_info->data[layer->len * 2 + i];
+        float inv_xdist = lkup_meta_info->data[layer->len * 3 + i];
+        /* float xmin = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 0})]; */
+        /* float xmax = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 1})]; */
+        /* float xdist = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 2})]; */
+        /* float inv_xdist = lkup_meta_info->data[get_idx(lkup_meta_info, (int[]) {i, 3})]; */
+        /* float xmin = lkup_meta_info */
+        printf("xmin, xmax, xdist, inv_xdist, %f, %f, %f, %f\n", xmin, xmax, xdist, inv_xdist);
+        /* printf("%f, %f\n", lkup_meta_info->data[0], lkup_meta_info->data[1]); */
+      
+        /* printf("Got index from meta\n"); */
 
         for (int j = 0; j < node->len; j++) {
             struct act_fun *func = node->funcs + j;
             for (int k = 0; k < TBL_SIZE; k++) {
-                float yval = get_idx(tbl_vals, (int[]){k, i, j});
+                float yval = lkup_meta_info->data[get_idx(tbl_vals, (int[]){k, i, j})];
+                /* printf("Got index from values\n"); */
                 func->table.tbl[k] = yval;
 
                 func->table.xmin = xmin;

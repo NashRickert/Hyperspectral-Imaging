@@ -73,3 +73,4 @@ struct Tensor {
 struct model init_model(int *widths, int len);
 struct Tensor construct_tensor(struct Shape shape);
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);
+void destroy_tensor(struct Tensor *data);
