@@ -130,4 +130,10 @@ print("Python here 2")
 out_len = c_retlen[0]
 retbuf = c_retbuf[0]
 print(out_len)
+result = []
 
+for i in range(out_len):
+    result.append(retbuf[i])
+print(result)
+print("Model result:")
+print(y)
