@@ -64,21 +64,25 @@ for i, func in enumerate(model.act_fun):
     c_val_shape = ffi.new("struct Shape *")
     c_val_shape.len = 3  # also: = len(list(y.shape))
     # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
+    print(list(y.shape))
     dim1 = ffi.new("int[]", list(y.shape))
     c_val_shape.dim = dim1
-    # print("desired shape: ", c_val_shape.dim[0], c_val_shape.dim[1], c_val_shape.dim[2])
+    print(c_val_shape.dim)
+    print("desired shape: ", c_val_shape.dim[0], c_val_shape.dim[1], c_val_shape.dim[2])
 
     c_val_tens = ffi.new("struct Tensor *")
     c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
 
-    c_val_tens.data = ffi.new("float []", y_flat.tolist())
+    data1 = ffi.new("float []", y_flat.tolist())
+    c_val_tens.data = data1 # ffi.new("float []", y_flat.tolist())
 
-    # print("actual shape: ", c_val_tens.shape.dim[0], c_val_tens.shape.dim[1], c_val_tens.shape.dim[2])
+    print("actual shape: ", c_val_tens.shape.dim[0], c_val_tens.shape.dim[1], c_val_tens.shape.dim[2])
 
     c_meta_shape = ffi.new("struct Shape *")
     c_meta_shape.len = 2
     dim2 = ffi.new("int[]", [width[i], 4])
     c_meta_shape.dim = dim2
+    print(c_meta_shape.dim)
 
     c_meta_tens = ffi.new("struct Tensor *")
     c_meta_tens[0] = lib.construct_tensor(c_meta_shape[0])
@@ -90,7 +94,8 @@ for i, func in enumerate(model.act_fun):
     mi = meta_info.tolist()
     # print(mi[0], mi[1], mi[2], mi[3])
 
-    c_meta_tens.data = ffi.new("float []", meta_info.tolist())
+    data2 = ffi.new("float []", meta_info.tolist())
+    c_meta_tens.data = data2 #ffi.new("float []", meta_info.tolist())
     # print(c_meta_tens.data[0], c_meta_tens.data[1], c_meta_tens.data[2], c_meta_tens.data[3])
 
     # print(ffi.addressof(c_model.layers[i]))

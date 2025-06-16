@@ -2,7 +2,7 @@
 
 #pragma once
 
-#define TBL_SIZE 256
+#define TBL_SIZE 4096
 
 extern const int TABLE_SIZE;
 

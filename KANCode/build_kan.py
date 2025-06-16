@@ -8,7 +8,7 @@ def build_extension():
     ffibuilder = FFI()
     ffibuilder.cdef("""
 
-#define TBL_SIZE 256
+#define TBL_SIZE 4096
 
 extern const int TABLE_SIZE;
 
@@ -95,7 +95,8 @@ void forward(struct model *model, float *input, int len, float **retbuf, int *re
                          sources = [path + 'forward.c', path + 'load.c'],
                          libraries=['m'],
                          # necessary to get asserts to work skull
-                         extra_compile_args=['-UNDEBUG'])
+                         extra_compile_args=['-g', '-UNDEBUG', '-O0'],
+                         extra_link_args=['-g'])
     return ffibuilder
 
 

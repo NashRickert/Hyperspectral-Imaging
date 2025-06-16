@@ -607,8 +607,8 @@ static void *_cffi_types[] = {
 /* 20 */ _CFFI_OP(_CFFI_OP_NOOP, 4),
 /* 21 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 22 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 13), // float
-/* 23 */ _CFFI_OP(_CFFI_OP_ARRAY, 22), // float[256]
-/* 24 */ (_cffi_opcode_t)(256),
+/* 23 */ _CFFI_OP(_CFFI_OP_ARRAY, 22), // float[4096]
+/* 24 */ (_cffi_opcode_t)(4096),
 /* 25 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 1), // struct Tensor
 /* 26 */ _CFFI_OP(_CFFI_OP_POINTER, 27), // struct act_fun *
 /* 27 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 2), // struct act_fun
@@ -892,7 +892,7 @@ static int _cffi_const_TBL_SIZE(unsigned long long *o)
 {
   int n = (TBL_SIZE) <= 0;
   *o = (unsigned long long)((TBL_SIZE) | 0);  /* check that TBL_SIZE is an integer */
-  if (!_cffi_check_int(*o, n, 256U))
+  if (!_cffi_check_int(*o, n, 4096U))
     n |= 2;
   return n;
 }
@@ -955,7 +955,7 @@ static void _cffi_checkfld_struct_lkup_tbl(struct lkup_tbl *p)
 {
   /* only to generate compile-time warnings or errors */
   (void)p;
-  { float(*tmp)[256] = &p->tbl; (void)tmp; }
+  { float(*tmp)[4096] = &p->tbl; (void)tmp; }
   { float *tmp = &p->xmin; (void)tmp; }
   { float *tmp = &p->xmax; (void)tmp; }
   { float *tmp = &p->xdist; (void)tmp; }

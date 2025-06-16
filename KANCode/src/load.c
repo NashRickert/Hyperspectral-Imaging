@@ -89,8 +89,11 @@ void cleanup_model(struct model model) {
  * Also must have that 0 <= idxs[i] < shape.dim[i]
  */ 
 int get_idx(struct Tensor *tensor, int *idxs) {
+    /* printf("%s\n", __func__); */
     int sum = 0;
+    /* printf("Tensor shape length: %d\n", tensor->shape.len); */
     for (int i = 0; i < tensor->shape.len; i++) {
+        /* printf("prefixes[i]: %d\n", tensor->prefixes[i]); */
         int temp;
         sum += tensor->prefixes[i] * idxs[i];
     }
@@ -199,13 +202,18 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
         float inv_xdist = lkup_meta_info->data[layer->len * 3 + i];
         /* printf("xmin, xmax, xdist, inv_xdist, %f, %f, %f, %f\n", xmin, xmax, xdist, inv_xdist); */
 
+        assert(node->len == node->next_layer->len);
         for (int j = 0; j < node->len; j++) {
             /* printf("here\n"); */
             struct act_fun *func = node->funcs + j;
             /* printf("\n\n"); */
             for (int k = 0; k < TBL_SIZE; k++) {
                 /* printf("here here\n"); */
-                float yval = tbl_vals->data[get_idx(tbl_vals, (int[]){k, i, j})];
+                /* printf("k, i, j: %d, %d, %d\n", k, i, j); */
+                /* printf("data ptr: %p\n", tbl_vals->data); */
+                int idx = get_idx(tbl_vals, (int[]){k, i, j});
+                /* printf("Idx: %d\n", idx); */
+                float yval = tbl_vals->data[idx];
                 /* printf("%f ", yval); */
                 func->table.tbl[k] = yval;
 
