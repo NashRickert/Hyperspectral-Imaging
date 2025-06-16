@@ -124,7 +124,9 @@ c_input = ffi.new("float[]", x.flatten().tolist())
 length = 200
 c_retbuf = ffi.new("float **")
 c_retlen = ffi.new("int *")
+print("Python here")
 lib.forward(ffi.addressof(c_model), c_input, length, c_retbuf, c_retlen)
+print("Python here 2")
 out_len = c_retlen[0]
 retbuf = c_retbuf[0]
 print(out_len)

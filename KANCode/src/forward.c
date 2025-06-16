@@ -2,6 +2,7 @@
 #include "forward.h"
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define POW_OF_TWO(a) ((a) & ((a) - 1)) == 0
@@ -137,15 +138,18 @@ static void ret_node_vals(struct layer *layer, float **retbuf, int *retlen) {
 void forward(struct model *model, float *input, int len, float **retbuf, int *retlen) {
     assert(len == model->layers->len);
     // Initializes the input values for the first layer
+    printf("Get here");
     for (int i = 0; i < len; i++) {
         struct node *node = model->layers->nodes + i;
         node->val = input[i];
     }
+    printf("Get here 2");
     // Propogates through each layer of the model
     // Does not propogate the last layer. Those nodes now hold the output values
     for (int i = 0; i < model->len - 1; i++) {
         propogate(model->layers + i);
     }
+    printf("Get here 3");
     // Return the output values from the last layer
     ret_node_vals(model->layers + model->len - 1, retbuf, retlen);
 }
