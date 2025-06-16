@@ -112,11 +112,11 @@ def print_cmodel_info(c_model):
                 print(f"Our targets are {nodes.targets[k]}")
             
 # x = torch.normal(mean=torch.zeros(200), std = torch.ones(200))
-x = torch.rand((1,200))
+x = torch.rand((1,200)).to(device)
 print(x)
 print(x.shape)
 with torch.no_grad():
-    y = model(x)
+    y = model(x).to(device)
 print(y)
 # print_cmodel_info(c_model)
 

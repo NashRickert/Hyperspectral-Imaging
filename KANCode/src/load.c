@@ -181,6 +181,7 @@ void destroy_tensor(struct Tensor *data) {
  * @param layer: The layer of our model we are targetting
  */
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer) {
+    /* printf("%s\n", __func__); */
     assert(tbl_vals->shape.len == 3);
     assert(tbl_vals->shape.dim[0] == TBL_SIZE);
     assert(tbl_vals->shape.dim[1] == layer->len);
@@ -199,10 +200,12 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
         /* printf("xmin, xmax, xdist, inv_xdist, %f, %f, %f, %f\n", xmin, xmax, xdist, inv_xdist); */
 
         for (int j = 0; j < node->len; j++) {
+            /* printf("here\n"); */
             struct act_fun *func = node->funcs + j;
             /* printf("\n\n"); */
             for (int k = 0; k < TBL_SIZE; k++) {
-                float yval = lkup_meta_info->data[get_idx(tbl_vals, (int[]){k, i, j})];
+                /* printf("here here\n"); */
+                float yval = tbl_vals->data[get_idx(tbl_vals, (int[]){k, i, j})];
                 /* printf("%f ", yval); */
                 func->table.tbl[k] = yval;
 
@@ -213,4 +216,5 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
             }
         }
     }
+    /* printf("end of %s\n", __func__); */
 }
