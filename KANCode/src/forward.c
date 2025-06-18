@@ -13,7 +13,7 @@
 static float lookup(float x, struct lkup_tbl *table) {
     // Note: assuming our training data resembles test, this should be fine
     // Because our grid has adjusted to contain all of the inputs to the function in training
-    printf("%f\n", x);
+    /* printf("%f\n", x); */
     if (x <= table->xmin) {
         return table->tbl[0];
     }
@@ -23,8 +23,8 @@ static float lookup(float x, struct lkup_tbl *table) {
     float idxf = (x - table->xmin) * table->inv_xdist;
     // remainder is now the proportion that x is between idx and idx + 1
     float remainder = fmodf(idxf, 1);
-    printf("%f\n", idxf);
-    printf("%f\n", remainder);
+    /* printf("%f\n", idxf); */
+    /* printf("%f\n", remainder); */
     assert(remainder >= 0);
 
     int idx = (int) idxf;
@@ -69,8 +69,8 @@ static float accumulate(struct adder_tree *tree) {
     /* printf("%s\n", __func__); */
 
     // need to have at least 1 valid entry
-    printf("%s\n", __func__);
-    printf("ptr: %d\n", tree->ptr);
+    /* printf("%s\n", __func__); */
+    /* printf("ptr: %d\n", tree->ptr); */
     assert(tree->ptr >= 1);
     // Need the buf to have enough entries
     assert(tree->len >= tree->ptr);
@@ -152,19 +152,19 @@ void forward(struct model *model, float *input, int len, float **retbuf, int *re
     printf("%s\n", __func__);
     assert(len == model->layers->len);
     // Initializes the input values for the first layer
-    printf("Get here\n");
+    /* printf("Get here\n"); */
     for (int i = 0; i < len; i++) {
         struct node *node = model->layers->nodes + i;
         node->val = input[i];
     }
-    printf("Get here 2\n");
+    /* printf("Get here 2\n"); */
     // Propogates through each layer of the model
     // Does not propogate the last layer. Those nodes now hold the output values
     for (int i = 0; i < model->len - 1; i++) {
-        printf("%d\n", i);
+        /* printf("%d\n", i); */
         propogate(model->layers + i);
     }
-    printf("Get here 3\n");
+    /* printf("Get here 3\n"); */
     // Return the output values from the last layer
     ret_node_vals(model->layers + model->len - 1, retbuf, retlen);
 }

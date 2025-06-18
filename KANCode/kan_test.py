@@ -64,11 +64,8 @@ for i, func in enumerate(model.act_fun):
     c_val_shape = ffi.new("struct Shape *")
     c_val_shape.len = 3  # also: = len(list(y.shape))
     # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
-    print(list(y.shape))
     dim1 = ffi.new("int[]", list(y.shape))
     c_val_shape.dim = dim1
-    print(c_val_shape.dim)
-    print("desired shape: ", c_val_shape.dim[0], c_val_shape.dim[1], c_val_shape.dim[2])
 
     c_val_tens = ffi.new("struct Tensor *")
     c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
@@ -76,31 +73,21 @@ for i, func in enumerate(model.act_fun):
     data1 = ffi.new("float []", y_flat.tolist())
     c_val_tens.data = data1 # ffi.new("float []", y_flat.tolist())
 
-    print("actual shape: ", c_val_tens.shape.dim[0], c_val_tens.shape.dim[1], c_val_tens.shape.dim[2])
-
     c_meta_shape = ffi.new("struct Shape *")
     c_meta_shape.len = 2
     dim2 = ffi.new("int[]", [width[i], 4])
     c_meta_shape.dim = dim2
-    print(c_meta_shape.dim)
 
     c_meta_tens = ffi.new("struct Tensor *")
     c_meta_tens[0] = lib.construct_tensor(c_meta_shape[0])
 
-    # print(c_meta_tens.shape.dim[0], c_meta_tens.shape.dim[1])
-    # print(c_meta_tens.prefixes[0], c_meta_tens.prefixes[1])
-
     meta_info = get_meta_info(func)
     mi = meta_info.tolist()
-    # print(mi[0], mi[1], mi[2], mi[3])
 
     data2 = ffi.new("float []", meta_info.tolist())
-    c_meta_tens.data = data2 #ffi.new("float []", meta_info.tolist())
-    # print(c_meta_tens.data[0], c_meta_tens.data[1], c_meta_tens.data[2], c_meta_tens.data[3])
+    c_meta_tens.data = data2
 
-    # print(ffi.addressof(c_model.layers[i]))
     lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.addressof(c_model.layers[i]))
-    # print(c_val_tens.shape.len)
 
     
 def print_cmodel_info(c_model):
@@ -122,16 +109,15 @@ print(x)
 print(x.shape)
 with torch.no_grad():
     y = model(x).to(device)
-print(y)
+print("Python model result:", y)
 # print_cmodel_info(c_model)
 
 c_input = ffi.new("float[]", x.flatten().tolist())
 length = 200
 c_retbuf = ffi.new("float **")
 c_retlen = ffi.new("int *")
-print("Python here")
 lib.forward(ffi.addressof(c_model), c_input, length, c_retbuf, c_retlen)
-print("Python here 2")
+
 out_len = c_retlen[0]
 retbuf = c_retbuf[0]
 print(out_len)
@@ -139,6 +125,6 @@ result = []
 
 for i in range(out_len):
     result.append(retbuf[i])
+
 print(result)
-print("Model result:")
-print(y)
+print("KAN C model result:", y)
