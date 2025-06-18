@@ -24,6 +24,7 @@ struct lkup_tbl {
 };
 
 struct act_fun {
+    // Note: These fields are unnecessary now because they are included in the node struct
     /* int *targets;         // The indexes of act_fun in the next layer that this act_fun passes vals to */
     /*                       // (model might not be fully connected) */
     /* int tgt_len;          // len of targets */
@@ -32,6 +33,9 @@ struct act_fun {
     struct lkup_tbl table;      // The lookup table associated with this function
 };
 
+// To be clear, the relation of targets and funcs is that
+// target[i] is the index of the node for func[i].
+// Generally if len = next_layer length, then we are fully connected and likely target[i] = i
 struct node {
     struct adder_tree tree;    // This stores the accumulated values in the node from the prev layer
     float val;                  // This stores the added up vals from the tree
@@ -41,12 +45,10 @@ struct node {
     struct layer *next_layer;   // This points to the next layer
 };
 
-// TODO: I was thinking about whether I need a special node or layer for the final layer to know that we should get our outpute?
-
 struct layer {
     struct node *nodes;   // The act_funcs that compose this layer
     int len;                 // Len of above buffer
-    int idx;              // Self indexing on the layer to help a bit with come computations
+    int idx;              // Self indexing on the layer to help a bit with some computations
 };
 
 
@@ -56,7 +58,6 @@ struct model {
 };
 
 
-// @NOTE: NEW
 struct Shape {
     int *dim;              // An array which holds the dimensions of the shape
     int len;               // The length of the dim array

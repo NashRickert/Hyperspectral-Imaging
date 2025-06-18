@@ -4,6 +4,9 @@ from kan import *
 import torch
 from kan.spline import coef2curve
 
+torch.manual_seed(7)
+torch.cuda.manual_seed(7)
+
 width = [200, 32, 32, 32, 16]
 grid = 10
 k = 3
@@ -28,7 +31,6 @@ c_model = lib.init_model(width, len(width))
 # Computes the evenly spaced input that will be used to construct the lookup tables
 def compute_layer_input(layer):
     grid = layer.grid
-
     x = []
 
     # For each input dim (aka for each node)
@@ -60,6 +62,7 @@ def get_meta_info(layer):
     meta_info = torch.cat((mins, maxs, xdists, inv_xdists))
     return meta_info
     
+
 # If I want to make this into a function (which I should) then I might have to try using a weak dict or something
 # To store references. Otherwise I think it would be really challenging to keep everything in scope
 
