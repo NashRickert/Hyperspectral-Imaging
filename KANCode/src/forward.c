@@ -79,7 +79,7 @@ static float accumulate(struct adder_tree *tree) {
     int ptr_cpy = tree->ptr;
     float result = 0.0f;
     while (ptr_cpy != 0) {
-        printf("result: %f\n", result);
+        /* printf("result: %f\n", result); */
         /* printf("Ptr cpy binary: %b\n", ptr_cpy); */
         int end = ptr_cpy & 0b1;
         end *= multiplier;

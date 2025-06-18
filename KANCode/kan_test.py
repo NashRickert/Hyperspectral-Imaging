@@ -11,7 +11,7 @@ k = 3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # This function modifies the width variable for some reason >:(. So we redeclare right after I guess
-model = KAN(width=width, grid = grid, k=k, seed=42, device=device, symbolic_enabled=False)
+model = KAN(width=width, grid = grid, k=k, seed=42, device=device, symbolic_enabled=False, auto_save=False)
 width = [200, 32, 32, 32, 16]
 
 model.load_state_dict(torch.load('temp_model.pt', map_location=device))
@@ -38,10 +38,25 @@ def compute_layer_input(layer):
 
 # Note that most of the output values are small, some of them are entirely zero. Is this the desired behavior?
 # ... could I have just done this with layer.forward? May want to check that vals end up being the same
+do_print = True
 def compute_layer_output(layer):
     x = compute_layer_input(layer)
     with torch.no_grad():
         y = coef2curve(x, layer.grid, layer.coef, k)
+
+        y, _, _, _ = layer.act_forward(x)
+
+
+        # if do_print:
+        #     print(f"x shape: {x.shape}\n")
+        #     print(f"With coef2curve: \n {y} \n with shape (coef2curve)\n {y.shape}")
+        # print("With coef2curve: ", y)
+        # y2, p1, p2, p3 = layer.forward(x)
+        # print("With .forward: ", y2)
+        # if do_print:
+        #     print(f"Other shapes from .forward: {p1.shape}, {p2.shape}, {p3.shape} \n")
+        #     print(f"With .forward: \n {y2} \n with shape (.forward)\n {y2.shape}")
+            # do_print = False
     return y.to(device)
 
 def get_meta_info(layer):
@@ -59,6 +74,7 @@ def get_meta_info(layer):
 # To store references. Otherwise I think it would be really challenging to keep everything in scope
 for i, func in enumerate(model.act_fun):
     y = compute_layer_output(func)
+    do_print = False
     y_flat = torch.flatten(y)
     
     c_val_shape = ffi.new("struct Shape *")
@@ -109,7 +125,6 @@ print(x)
 print(x.shape)
 with torch.no_grad():
     y = model(x).to(device)
-print("Python model result:", y)
 # print_cmodel_info(c_model)
 
 c_input = ffi.new("float[]", x.flatten().tolist())
@@ -126,5 +141,5 @@ result = []
 for i in range(out_len):
     result.append(retbuf[i])
 
-print(result)
-print("KAN C model result:", y)
+print("Python model result:", y)
+print("KAN C model result:", result)
