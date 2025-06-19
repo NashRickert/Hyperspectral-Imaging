@@ -3,3 +3,5 @@ For the sake of collecting the outputs for the lookup tables, it is necessary to
 Note also that early on I had an issue that required a very minor modification to the library as well. I do not remember what it was or if others might get the same issue. If they do, it should not be hard to see it based on inspecting the error message and associated library function. It had to do with an uninvertible matrix and was resolvable by uncommenting (or moving out of a control block) some code in the library that applied a small amount of regularization.
 
 Currently build_kan.py is used to build the C library, kan_test.py is used to actually use the library and perform forward computation, and test_kan.py is used purely for testing.
+
+Note that right now I have no garbage collection for dynamic C memory. I claim this is ok becuase most memory needs to survive the lifetime of the function anyways (except tensors) (although usage of ffi.gc makes me think these might already be getting garbage collected?)

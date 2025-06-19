@@ -74,6 +74,9 @@ struct model init_model(int *widths, int len) {
 
 /**
  * @brief cleans up all the dynamic memory associated with the model
+ * I am not implementing this currently because it seems unnecessary
+ * (model lasts lifetime of program)
+ * But I may need to in the future, in which case I should wrap the model in cffi with ffi.gc
  */
 void cleanup_model(struct model model) {
     return;
