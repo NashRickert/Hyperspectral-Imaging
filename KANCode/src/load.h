@@ -2,9 +2,13 @@
 
 #pragma once
 
+#define SCALE 1
 #define TBL_SIZE 4096
 
+#define IS_NUMBER(a) !(isnanf((a)) || isinff((a)))
+
 extern const int TABLE_SIZE;
+extern const int SCALED;
 
 struct adder_tree {
     float *inputs;    // Stores the values we accumulate from previous layers in the tree
@@ -21,6 +25,8 @@ struct lkup_tbl {
     float xmax;              // x val associated with table[TBL_SIZE - 1]
     float xdist;             // dist between x values. Roughly (xmax - xmin) / TBL_SIZE
     float inv_xdist;         // the recipricol of xdist for division
+    float ymin;
+    float ymax;
 };
 
 struct act_fun {
@@ -73,5 +79,5 @@ struct Tensor {
 
 struct model init_model(int *widths, int len);
 struct Tensor construct_tensor(struct Shape shape);
-void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct Tensor *y_mins_maxes, struct layer *layer);
 void destroy_tensor(struct Tensor *data);

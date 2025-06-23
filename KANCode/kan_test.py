@@ -103,8 +103,51 @@ for i, func in enumerate(model.act_fun):
     data2 = ffi.new("float []", meta_info.tolist())
     c_meta_tens.data = data2
 
+    # New code -----------
+    y_maxes = torch.max(y, dim=0).values
+    y_mins = torch.min(y, dim=0).values
+
+    new_y_maxes = y_maxes.clone()
+    new_y_mins = y_mins.clone()
+
+    print(new_y_maxes.shape)
+
+    y_maxes = torch.unsqueeze(y_maxes, 0)
+    y_mins = torch.unsqueeze(y_mins, 0)
+    y_diff = y_maxes - y_mins
+    for val in y_diff.tolist():
+        if val == 0:
+            print("WE HAVE A ZZERO DIFFFFFFFFF!!!!!!!")
+
+    z = (y - y_mins) / y_diff
+
+    z_flat = torch.flatten(z)
+
+    data4 = ffi.new("float []", z_flat.tolist())
+    c_val_tens.data = data4
+
+
+    y_meta_data = torch.cat((new_y_mins.flatten(), new_y_maxes.flatten()))
+    print("Printing mins and maxes from python")
+    for val in y_meta_data:
+        print(val, end='')
+    print()
+
+    c_mm_shape = ffi.new("struct Shape *")
+    c_mm_shape.len = 3
+
+    dim3 = ffi.new("int []", [2, func.in_dim, func.out_dim])
+    c_mm_shape.dim = dim3
+
+    c_mm_tens = ffi.new("struct Tensor *")
+    c_mm_tens[0] = lib.construct_tensor(c_mm_shape[0])
+    data7 = ffi.new("float[]", y_meta_data.tolist())
+    c_mm_tens.data = data7
+    
+     # ---------------
+
     # Now that our tensors are constructed, we call the proper C function on the layer
-    lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.addressof(c_model.layers[i]))
+    lib.fill_lkup_tables(c_val_tens, c_meta_tens, c_mm_tens, ffi.addressof(c_model.layers[i]))
 
     
 # Utility function (which actually isn't that useful) for printing model info

@@ -8,7 +8,11 @@ def build_extension():
     ffibuilder = FFI()
     ffibuilder.cdef("""
 
+#define SCALE 1
 #define TBL_SIZE 4096
+
+extern const int TABLE_SIZE;
+extern const int SCALED;
 
 extern const int TABLE_SIZE;
 
@@ -27,6 +31,8 @@ struct lkup_tbl {
     float xmax;              // x val associated with table[TBL_SIZE - 1]
     float xdist;             // dist between x values. Roughly (xmax - xmin) / TBL_SIZE
     float inv_xdist;         // the recipricol of xdist for division
+    float ymin;
+    float ymax;
 };
 
 struct act_fun {
@@ -75,7 +81,7 @@ struct Tensor {
 
 struct model init_model(int *widths, int len);
 struct Tensor construct_tensor(struct Shape shape);
-void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer);
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct Tensor *y_mins_maxes, struct layer *layer);
 void destroy_tensor(struct Tensor *data);
 
 void forward(struct model *model, float *input, int len, float **retbuf, int *retlen);

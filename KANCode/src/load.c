@@ -7,6 +7,11 @@
 // Placeholder
 
 const int TABLE_SIZE = TBL_SIZE;
+#ifdef SCALE
+const int SCALED = 1;
+#else
+const int SCALED = 0;
+#endif
 
 /**
  * @brief initializes and returns a model with the correct number of layers,
@@ -15,6 +20,9 @@ const int TABLE_SIZE = TBL_SIZE;
  * @params len is the length of the aforementioned buffer
  */
 struct model init_model(int *widths, int len) {
+#ifdef SCALE
+    printf("We are scaling\n");
+#endif
     struct layer *layers = (struct layer *) malloc(sizeof(struct layer) * len);
     if (!layers) {
         printf("Malloc failed, init_model");
@@ -181,7 +189,7 @@ void destroy_tensor(struct Tensor *data) {
  * Should be the same for every node. Note that all mins, then all maxs, etc. show up in that order
  * @param layer: The layer of our model we are targetting
  */
-void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct layer *layer) {
+void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct Tensor *y_mins_maxes, struct layer *layer) {
     assert(tbl_vals->shape.len == 3);
     assert(tbl_vals->shape.dim[0] == TBL_SIZE);
     assert(tbl_vals->shape.dim[1] == layer->len);
@@ -189,6 +197,12 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
     assert(lkup_meta_info->shape.len == 2);
     assert(lkup_meta_info->shape.dim[0] == layer->len);
     assert(lkup_meta_info->shape.dim[1] == 4);
+
+    printf("Printing contents of y_mins_maxes:\n");
+    for (int i = 0; i < y_mins_maxes->len; i++) {
+        printf("%f ", y_mins_maxes->data[i]);
+    }
+    printf("\n\n");
 
     for (int i = 0; i < layer->len; i++) {
         struct node *node = layer->nodes + i;
@@ -204,12 +218,26 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
             for (int k = 0; k < TBL_SIZE; k++) {
                 int idx = get_idx(tbl_vals, (int[]){k, i, j});
                 float yval = tbl_vals->data[idx];
+                assert(IS_NUMBER(yval));
+                
                 func->table.tbl[k] = yval;
 
                 func->table.xmin = xmin;
                 func->table.xmax = xmax;
                 func->table.xdist = xdist;
                 func->table.inv_xdist = inv_xdist;
+#ifdef SCALE
+                idx = get_idx(y_mins_maxes, (int[]) {0, i, j});
+                float y_min = y_mins_maxes->data[idx];
+
+                idx = get_idx(y_mins_maxes, (int[]) {1, i, j});
+                float y_max = y_mins_maxes->data[idx];
+
+                assert(IS_NUMBER(y_min) && IS_NUMBER(y_max));
+
+                func->table.ymax = y_max;
+                func->table.ymin = y_min;
+#endif
             }
         }
     }

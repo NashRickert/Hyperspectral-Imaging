@@ -40,6 +40,14 @@ static float accum_buf(float *buf, int end) {
     while (end != 1) {
         assert(end > 1);
         for (int i = 0; i < end; i += (gap * 2)) {
+            if (!IS_NUMBER(buf[i]) || !IS_NUMBER(buf[i + gap])) {
+                for (int j = 0; j < end; j++) {
+                    printf("%f ", buf[j]);
+                }
+                /* printf("%d\n", i); */
+            }
+            assert(IS_NUMBER(buf[i]));
+            assert(IS_NUMBER(buf[i + gap]));
             buf[i] += buf[i + gap];
         }
         end -= gap;
@@ -89,21 +97,24 @@ static void propogate(struct layer *layer) {
         struct node *node = &(layer->nodes[i]);
         if (layer->idx != 0) {
             node->val = accumulate(&node->tree);
-            if (isnanf(node->val) || isinff(node->val)) {
-                printf("Our output is a nan or inf. Value: %f\n Layer idx: %d\n", node->val, layer->idx);
-                printf("Node idx: %d\n", i);
-                exit(EXIT_FAILURE);
-            }
+            assert(IS_NUMBER(node->val));
         }
         float input = node->val;
         for (int j = 0; j < node->len; j++) {
             int target = node->targets[j];
+            // Should probably use target here for fully-connected agnostic implementation
             struct act_fun *func = &(node->funcs[j]);
             struct node *targ_node = &(node->next_layer->nodes[j]);
             struct adder_tree *targ_tree = &targ_node->tree;
             
 
             float output = lookup(input, &(func->table));
+#ifdef SCALE
+            assert(IS_NUMBER(output));
+            float diff = func->table.ymax - func->table.ymin;
+            output = output * diff + func->table.ymin;
+            assert(IS_NUMBER(output));
+#endif
             targ_tree->inputs[targ_tree->ptr] = output;
             targ_tree->ptr++;
         }
