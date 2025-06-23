@@ -8,8 +8,9 @@ def build_extension():
     ffibuilder = FFI()
     ffibuilder.cdef("""
 
-#define SCALE 1
+// #define SCALE 1
 #define TBL_SIZE 4096
+// #define float double
 
 extern const int TABLE_SIZE;
 extern const int SCALED;

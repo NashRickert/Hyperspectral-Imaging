@@ -907,15 +907,6 @@ static void _cffi_f_init_model(struct model *result, int * x0, int x1)
 }
 #endif
 
-static int _cffi_const_SCALE(unsigned long long *o)
-{
-  int n = (SCALE) <= 0;
-  *o = (unsigned long long)((SCALE) | 0);  /* check that SCALE is an integer */
-  if (!_cffi_check_int(*o, n, 1U))
-    n |= 2;
-  return n;
-}
-
 static int _cffi_const_TBL_SIZE(unsigned long long *o)
 {
   int n = (TBL_SIZE) <= 0;
@@ -1018,7 +1009,6 @@ static void _cffi_checkfld_struct_node(struct node *p)
 struct _cffi_align_struct_node { char x; struct node y; };
 
 static const struct _cffi_global_s _cffi_globals[] = {
-  { "SCALE", (void *)_cffi_const_SCALE, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
   { "SCALED", (void *)_cffi_const_SCALED, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
   { "TABLE_SIZE", (void *)_cffi_const_TABLE_SIZE, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
   { "TBL_SIZE", (void *)_cffi_const_TBL_SIZE, _CFFI_OP(_CFFI_OP_CONSTANT_INT, -1), (void *)0 },
@@ -1142,7 +1132,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   _cffi_struct_unions,
   NULL,  /* no enums */
   NULL,  /* no typenames */
-  9,  /* num_globals */
+  8,  /* num_globals */
   8,  /* num_struct_unions */
   0,  /* num_enums */
   0,  /* num_typenames */

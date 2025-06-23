@@ -5,6 +5,8 @@
 #define SCALE 1
 #define TBL_SIZE 4096
 
+/* #define float double */
+
 #define IS_NUMBER(a) !(isnanf((a)) || isinff((a)))
 
 extern const int TABLE_SIZE;
