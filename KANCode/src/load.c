@@ -22,6 +22,8 @@ const int SCALED = 0;
 struct model init_model(int *widths, int len) {
 #ifdef SCALE
     printf("We are scaling\n");
+#else
+    printf("We are not scaling\n");
 #endif
     struct layer *layers = (struct layer *) malloc(sizeof(struct layer) * len);
     if (!layers) {
@@ -190,6 +192,14 @@ void destroy_tensor(struct Tensor *data) {
  * @param layer: The layer of our model we are targetting
  */
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct Tensor *y_mins_maxes, struct layer *layer) {
+#ifdef SCALE
+    assert(y_mins_maxes->shape.len == 3);
+    assert(y_mins_maxes->shape.dim[0] == 2);
+    assert(y_mins_maxes->shape.dim[1] == layer->len);
+    assert(y_mins_maxes->shape.dim[2] == layer->nodes[0].next_layer->len);
+#else
+    assert(y_mins_maxes == NULL);
+#endif
     assert(tbl_vals->shape.len == 3);
     assert(tbl_vals->shape.dim[0] == TBL_SIZE);
     assert(tbl_vals->shape.dim[1] == layer->len);
@@ -198,11 +208,7 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
     assert(lkup_meta_info->shape.dim[0] == layer->len);
     assert(lkup_meta_info->shape.dim[1] == 4);
 
-    printf("Printing contents of y_mins_maxes:\n");
-    for (int i = 0; i < y_mins_maxes->len; i++) {
-        printf("%f ", y_mins_maxes->data[i]);
-    }
-    printf("\n\n");
+
 
     for (int i = 0; i < layer->len; i++) {
         struct node *node = layer->nodes + i;

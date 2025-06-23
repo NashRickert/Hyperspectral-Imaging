@@ -22,6 +22,7 @@ model.load_state_dict(torch.load('temp_model.pt', map_location=device))
         
 # Done to sync C macro def with this code. In the C code, we assigned a global to have the macro val so we can do this
 TBL_SIZE = lib.TABLE_SIZE
+SCALE = lib.SCALED
 
 # Create the C object for the model
 c_model = ffi.new("struct model *")
@@ -70,7 +71,6 @@ def get_meta_info(layer):
 for i, func in enumerate(model.act_fun):
     # Compute the table values
     y = compute_layer_output(func)
-    y_flat = torch.flatten(y)
     
     # Construct our shape for the tensor
     c_val_shape = ffi.new("struct Shape *")
@@ -81,12 +81,9 @@ for i, func in enumerate(model.act_fun):
     dim1 = ffi.new("int[]", list(y.shape))
     c_val_shape.dim = dim1
 
-    # Construct out tensor and put our values in it
+    # Construct out tensor and put our values in it (we will do this later due to scaling)
     c_val_tens = ffi.new("struct Tensor *")
     c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
-
-    data1 = ffi.new("float []", y_flat.tolist())
-    c_val_tens.data = data1
 
     # Repeats the process for our meta data
     c_meta_shape = ffi.new("struct Shape *")
@@ -103,6 +100,16 @@ for i, func in enumerate(model.act_fun):
     data2 = ffi.new("float []", meta_info.tolist())
     c_meta_tens.data = data2
 
+    # We are not scaling
+    if SCALE == 0:
+        y_flat = torch.flatten(y)
+        data1 = ffi.new("float []", y_flat.tolist())
+        c_val_tens.data = data1
+
+        lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.NULL, ffi.addressof(c_model.layers[i]))
+        continue
+        
+
     # New code -----------
     y_maxes = torch.max(y, dim=0).values
     y_mins = torch.min(y, dim=0).values
@@ -110,28 +117,19 @@ for i, func in enumerate(model.act_fun):
     new_y_maxes = y_maxes.clone()
     new_y_mins = y_mins.clone()
 
-    print(new_y_maxes.shape)
-
     y_maxes = torch.unsqueeze(y_maxes, 0)
     y_mins = torch.unsqueeze(y_mins, 0)
     y_diff = y_maxes - y_mins
-    for val in y_diff.tolist():
-        if val == 0:
-            print("WE HAVE A ZZERO DIFFFFFFFFF!!!!!!!")
 
     z = (y - y_mins) / y_diff
 
     z_flat = torch.flatten(z)
 
-    data4 = ffi.new("float []", z_flat.tolist())
-    c_val_tens.data = data4
+    data1 = ffi.new("float []", z_flat.tolist())
+    c_val_tens.data = data1
 
 
     y_meta_data = torch.cat((new_y_mins.flatten(), new_y_maxes.flatten()))
-    print("Printing mins and maxes from python")
-    for val in y_meta_data:
-        print(val, end='')
-    print()
 
     c_mm_shape = ffi.new("struct Shape *")
     c_mm_shape.len = 3
@@ -141,8 +139,8 @@ for i, func in enumerate(model.act_fun):
 
     c_mm_tens = ffi.new("struct Tensor *")
     c_mm_tens[0] = lib.construct_tensor(c_mm_shape[0])
-    data7 = ffi.new("float[]", y_meta_data.tolist())
-    c_mm_tens.data = data7
+    data3 = ffi.new("float[]", y_meta_data.tolist())
+    c_mm_tens.data = data3
     
      # ---------------
 
@@ -164,8 +162,7 @@ def print_cmodel_info(c_model):
                 print(f"Our targets are {nodes.targets[k]}")
             
 x = torch.rand((1,200)).to(device)
-# print(x)
-# print(x.shape)
+
 with torch.no_grad():
     y = model(x).to(device)
 

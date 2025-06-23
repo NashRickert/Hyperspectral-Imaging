@@ -40,12 +40,6 @@ static float accum_buf(float *buf, int end) {
     while (end != 1) {
         assert(end > 1);
         for (int i = 0; i < end; i += (gap * 2)) {
-            if (!IS_NUMBER(buf[i]) || !IS_NUMBER(buf[i + gap])) {
-                for (int j = 0; j < end; j++) {
-                    printf("%f ", buf[j]);
-                }
-                /* printf("%d\n", i); */
-            }
             assert(IS_NUMBER(buf[i]));
             assert(IS_NUMBER(buf[i + gap]));
             buf[i] += buf[i + gap];
@@ -109,8 +103,8 @@ static void propogate(struct layer *layer) {
             
 
             float output = lookup(input, &(func->table));
-#ifdef SCALE
             assert(IS_NUMBER(output));
+#ifdef SCALE
             float diff = func->table.ymax - func->table.ymin;
             output = output * diff + func->table.ymin;
             assert(IS_NUMBER(output));
