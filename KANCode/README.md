@@ -5,3 +5,5 @@ Note also that early on I had an issue that required a very minor modification t
 Currently build_kan.py is used to build the C library, kan_test.py is used to actually use the library and perform forward computation, and test_kan.py is used purely for testing.
 
 Note that right now I have no garbage collection for dynamic C memory. I claim this is ok becuase most memory needs to survive the lifetime of the function anyways (except tensors) (although usage of ffi.gc makes me think these might already be getting garbage collected?)
+
+The forward function with a table size of 4096 takes 0.00085-0.00087 seconds to run in C (from the start of the forward function to the end) for a single sample. I ran the test 5 times and all of them fell in this range. Note that the model this is tested on has dimensions [200, 32, 32, 32, 16]. This is with the following CPU specs: CPU: 12th Gen Intel(R) Core(TM) i7-1260P (16) @ 4.70 GHz

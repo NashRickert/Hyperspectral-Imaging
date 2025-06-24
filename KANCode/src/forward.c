@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define POW_OF_TWO(a) ((a) & ((a) - 1)) == 0
 
@@ -133,8 +134,10 @@ static void ret_node_vals(struct layer *layer, float **retbuf, int *retlen) {
 /**
  * @brief does a complete forward pass of the model,
  * returning the results through the return parameters
+ * @TODO: Make it so that this model can accept multiple batches at once
  */
 void forward(struct model *model, float *input, int len, float **retbuf, int *retlen) {
+    clock_t in_clock = clock();
     assert(len == model->layers->len);
     // Initializes the input values for the first layer
     for (int i = 0; i < len; i++) {
@@ -148,6 +151,10 @@ void forward(struct model *model, float *input, int len, float **retbuf, int *re
     }
     // Return the output values from the last layer
     ret_node_vals(model->layers + model->len - 1, retbuf, retlen);
+    clock_t out_clock = clock();
+    double elapsed_time = (double) (out_clock - in_clock) / CLOCKS_PER_SEC;
+    printf("Forward elapsed time in seconds for a single sample: %f\n", elapsed_time);
+        
 }
 
 

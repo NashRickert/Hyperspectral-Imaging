@@ -1,9 +1,9 @@
 from _kan import lib, ffi
 import torch
 from kan import *
-import torch
-from kan.spline import coef2curve
 import weakref
+from sklearn.cluster import KMeans
+import math
 
 torch.manual_seed(7)
 torch.cuda.manual_seed(7)
@@ -64,9 +64,15 @@ def get_meta_info(layer):
     return meta_info
     
 
+# This is used to track references for the sake of cffi lifetimes
 global_weakkeydict = weakref.WeakKeyDictionary()
 
+# This makes and returns a c tensor with the given specifications
+# dimensions corresponds to the dimensions of the shape of the tensor
+# data corresponds to the data to store in the tensor and is optional
 def make_tens(dimensions, data=None):
+    if data is not None:
+        assert math.prod(dimensions) == len(data)
     # Construct the shape and add to dict
     c_shape = ffi.new("struct Shape *")
     c_shape.len = len(dimensions)
@@ -90,6 +96,23 @@ def make_tens(dimensions, data=None):
 
     return c_tens
 
+# Do clustering on the normalized lookup tables outputs
+# See some documentation here: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+def run_clustering(z, reshape=True):
+    # reshape (TBL_SIZE, a, b) tensor to be (a * b, TBL_SIZE) for clustering
+    if reshape:
+        input = z.permute(1,2,0).reshape(-1, 4096).cpu().numpy()
+    else:
+        input = z
+    # print(type(input))
+    print(input.shape)
+
+    kmeans = KMeans().fit(input)
+
+    print(kmeans.labels_)
+    print(kmeans.cluster_centers_)
+
+    
 
     
 # This loop is used to instantiate the lookup tables for the model by looping through each layer
@@ -114,6 +137,10 @@ for i, func in enumerate(model.act_fun):
 
     # y and y_diff/min shape mismatch doesn't matter here because of broadcasting
     z = (y - y_mins) / y_diff
+
+    # TODO: Do some actual analysis on the clustering
+    # print(f"About to run clustering on layer {i}")
+    # run_clustering(z)
 
     c_val_tens = make_tens(list(y.shape), torch.flatten(z).tolist())
 
