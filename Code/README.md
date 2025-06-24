@@ -1,0 +1,5 @@
+Instructions:
+
+This C implementation of the python CNN follows the structure of the python code pretty closely without abstractions. Our main data structures are tensors, which have a shape and a data array which is a flattened version of the values inside of a tensor in python. They also have utility fields of len (corresponding to the length of data) and prefixes, which is useful for calculating position inside of the data array.
+
+The main function is inside of CNN.c. One can load a batch using the load_batch function into a data tensor, then run the inference on the tensor with the forward function. Note that one must intialize the weight parameters first from the binaries using the full_weight_init function before this. All math functions are in Math.c, the functions for loading weights, batches, and binaries are in load.c. layers.c wraps around the actually structure of the CNN so that it is nicer, the counter variables are in counter.c/h, and there are some functions in CNN.c for doing the final accuracy verification.
