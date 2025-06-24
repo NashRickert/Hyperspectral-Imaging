@@ -144,8 +144,8 @@ static int *compute_prefixes(struct Shape shape) {
 
 /**
  * Constructs a tensor based on the passed shape parameter
- * The tensor uses the parameter shape itself in its shape field, so one should not reuse
- * shapes to create multiple tensors, otherwise their dimension arrays will be shared
+ * Unlike the CNN implementation, we do not reuse the shape dimensions field.
+ * It is better for ffi lifetimes to not rely on this.
  * This is all possible because everything about a tensor is uniquely determined by its shape
  * (Except its data values which will need to be filled in by the caller)
  */
@@ -190,6 +190,10 @@ void destroy_tensor(struct Tensor *data) {
  * For each nodes lookup tables: xmin, xmax, xdist, inv_xdist in that order.
  * Should be the same for every node. Note that all mins, then all maxs, etc. show up in that order
  * @param layer: The layer of our model we are targetting
+ * @param y_mins_maxes: Of shape (2, layer_len, next_layer_len). Provides the ymin/max meta data
+ * For scaling which we use to populate the lookup tables. If not scaling, the Tensor MUST be NULL
+ * All the mins come first, then all the maxes. Thus the first idx determines whether we get
+ * a min or a max
  */
 void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, struct Tensor *y_mins_maxes, struct layer *layer) {
 #ifdef SCALE
@@ -207,8 +211,6 @@ void fill_lkup_tables(struct Tensor *tbl_vals, struct Tensor *lkup_meta_info, st
     assert(lkup_meta_info->shape.len == 2);
     assert(lkup_meta_info->shape.dim[0] == layer->len);
     assert(lkup_meta_info->shape.dim[1] == 4);
-
-
 
     for (int i = 0; i < layer->len; i++) {
         struct node *node = layer->nodes + i;
