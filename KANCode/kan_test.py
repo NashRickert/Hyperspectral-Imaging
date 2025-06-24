@@ -3,6 +3,7 @@ import torch
 from kan import *
 import torch
 from kan.spline import coef2curve
+import weakref
 
 torch.manual_seed(7)
 torch.cuda.manual_seed(7)
@@ -64,47 +65,44 @@ def get_meta_info(layer):
     return meta_info
     
 
-# If I want to make this into a function (which I should) then I might have to try using a weak dict or something
-# To store references. Otherwise I think it would be really challenging to keep everything in scope
+global_weakkeydict = weakref.WeakKeyDictionary()
 
+def make_tens(dimensions, data=None):
+    # Construct the shape and add to dict
+    c_shape = ffi.new("struct Shape *")
+    c_shape.len = len(dimensions)
+    # # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
+    dim = ffi.new("int[]", dimensions)
+    c_shape.dim = dim
+
+    # Construct the tensor and add to dict
+    # We allocate all fields inside the C code, so no concern about lifetimes yet
+    c_tens = ffi.new("struct Tensor *")
+    c_tens[0] = lib.construct_tensor(c_shape[0])
+
+    if data is None:
+        return c_tens
+
+    c_data = ffi.new("float[]", data)
+    c_tens.data = c_data
+
+    global_weakkeydict[c_tens] = c_data
+
+    return c_tens
+
+
+    
 # This loop is used to instantiate the lookup tables for the model by looping through each layer
 for i, func in enumerate(model.act_fun):
     # Compute the table values
     y = compute_layer_output(func)
-    
-    # Construct our shape for the tensor
-    c_val_shape = ffi.new("struct Shape *")
-    c_val_shape.len = 3
 
-    # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
-    # This pattern repeats elsewhere in the code. Refer to the cffi documentation
-    dim1 = ffi.new("int[]", list(y.shape))
-    c_val_shape.dim = dim1
-
-    # Construct out tensor and put our values in it (we will do this later due to scaling)
-    c_val_tens = ffi.new("struct Tensor *")
-    c_val_tens[0] = lib.construct_tensor(c_val_shape[0])
-
-    # Repeats the process for our meta data
-    c_meta_shape = ffi.new("struct Shape *")
-    c_meta_shape.len = 2
-    dim2 = ffi.new("int[]", [width[i], 4])
-    c_meta_shape.dim = dim2
-
-    c_meta_tens = ffi.new("struct Tensor *")
-    c_meta_tens[0] = lib.construct_tensor(c_meta_shape[0])
-
-    meta_info = get_meta_info(func)
-    mi = meta_info.tolist()
-
-    data2 = ffi.new("float []", meta_info.tolist())
-    c_meta_tens.data = data2
+    c_meta_tens = make_tens([width[i], 4], get_meta_info(func).tolist())
 
     # We are not scaling
     if SCALE == 0:
-        y_flat = torch.flatten(y)
-        data1 = ffi.new("float []", y_flat.tolist())
-        c_val_tens.data = data1
+        # This is a nice pattern to turn a python tensor to a c tensor
+        c_val_tens = make_tens(list(y.shape), torch.flatten(y).tolist())
 
         lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.NULL, ffi.addressof(c_model.layers[i]))
         continue
@@ -123,26 +121,11 @@ for i, func in enumerate(model.act_fun):
 
     z = (y - y_mins) / y_diff
 
-    z_flat = torch.flatten(z)
-
-    data1 = ffi.new("float []", z_flat.tolist())
-    c_val_tens.data = data1
-
+    c_val_tens = make_tens(list(y.shape), torch.flatten(z).tolist())
 
     y_meta_data = torch.cat((new_y_mins.flatten(), new_y_maxes.flatten()))
 
-    c_mm_shape = ffi.new("struct Shape *")
-    c_mm_shape.len = 3
-
-    dim3 = ffi.new("int []", [2, func.in_dim, func.out_dim])
-    c_mm_shape.dim = dim3
-
-    c_mm_tens = ffi.new("struct Tensor *")
-    c_mm_tens[0] = lib.construct_tensor(c_mm_shape[0])
-    data3 = ffi.new("float[]", y_meta_data.tolist())
-    c_mm_tens.data = data3
-    
-     # ---------------
+    c_mm_tens = make_tens([2, func.in_dim, func.out_dim], y_meta_data.tolist())
 
     # Now that our tensors are constructed, we call the proper C function on the layer
     lib.fill_lkup_tables(c_val_tens, c_meta_tens, c_mm_tens, ffi.addressof(c_model.layers[i]))
