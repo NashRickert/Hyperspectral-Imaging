@@ -48,7 +48,6 @@ def compute_layer_input(layer):
 def compute_layer_output(layer):
     x = compute_layer_input(layer)
     with torch.no_grad():
-        # y = coef2curve(x, layer.grid, layer.coef, k)
         y, _, _, _ = layer.act_forward(x)
     return y.to(device)
 
@@ -71,7 +70,7 @@ def make_tens(dimensions, data=None):
     # Construct the shape and add to dict
     c_shape = ffi.new("struct Shape *")
     c_shape.len = len(dimensions)
-    # # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
+    # Note: Due to lifetimes it is actually necessary to do this pattern instead of assigning directly
     dim = ffi.new("int[]", dimensions)
     c_shape.dim = dim
 
@@ -83,6 +82,7 @@ def make_tens(dimensions, data=None):
     if data is None:
         return c_tens
 
+    # We are now concerned about lifetimes because of how we assign the field
     c_data = ffi.new("float[]", data)
     c_tens.data = c_data
 
@@ -107,23 +107,17 @@ for i, func in enumerate(model.act_fun):
         lib.fill_lkup_tables(c_val_tens, c_meta_tens, ffi.NULL, ffi.addressof(c_model.layers[i]))
         continue
         
-
-    # New code -----------
     y_maxes = torch.max(y, dim=0).values
     y_mins = torch.min(y, dim=0).values
 
-    new_y_maxes = y_maxes.clone()
-    new_y_mins = y_mins.clone()
-
-    y_maxes = torch.unsqueeze(y_maxes, 0)
-    y_mins = torch.unsqueeze(y_mins, 0)
     y_diff = y_maxes - y_mins
 
+    # y and y_diff/min shape mismatch doesn't matter here because of broadcasting
     z = (y - y_mins) / y_diff
 
     c_val_tens = make_tens(list(y.shape), torch.flatten(z).tolist())
 
-    y_meta_data = torch.cat((new_y_mins.flatten(), new_y_maxes.flatten()))
+    y_meta_data = torch.cat((y_mins.flatten(), y_maxes.flatten()))
 
     c_mm_tens = make_tens([2, func.in_dim, func.out_dim], y_meta_data.tolist())
 
