@@ -2,7 +2,7 @@
 
 #pragma once
 
-#define SCALE 1
+#define SCALE
 #define TBL_SIZE 4096
 
 /* #define float double */

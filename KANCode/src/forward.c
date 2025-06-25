@@ -65,8 +65,9 @@ static float accumulate(struct adder_tree *tree) {
     int multiplier = 1;
     int ptr_cpy = tree->ptr;
     float result = 0.0f;
+    int end;
     while (ptr_cpy != 0) {
-        int end = ptr_cpy & 0b1;
+        end = ptr_cpy & 0b1;
         end *= multiplier;
         if (end != 0) {
             result += accum_buf(tree->inputs + start, end);
@@ -154,7 +155,6 @@ void forward(struct model *model, float *input, int len, float **retbuf, int *re
     clock_t out_clock = clock();
     double elapsed_time = (double) (out_clock - in_clock) / CLOCKS_PER_SEC;
     printf("Forward elapsed time in seconds for a single sample: %f\n", elapsed_time);
-        
 }
 
 
