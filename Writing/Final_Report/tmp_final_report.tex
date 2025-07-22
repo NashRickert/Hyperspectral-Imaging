@@ -64,7 +64,7 @@
 
 \section{Project Overview}
 \subsection{Hyperspectral Imaging}
-While a familiar RGB image samples only the three spectral bands associated with the colors red, green, and blue in the visible spectra to form an image, a hyperspectral imager uses diffraction to sample a continuous range of spectral bands, including those falling outside of the visible spectrum. This is useful for many tasks such as environmental monitoring because hyperspectral images can draw out characteristics of the data that would not exist in an RGB image. For example, the chlorophyll in vegetation absorbs most visible light, but its reflectance changes rapidly near the infrared range of the spectrum. This phenomenon is called the 'red edge', and makes identifying vegetation relatively straightforward using hyperspectral imaging. For our project, we are seeking to leverage these advantages to identify forest regions which an adbundance of ground fuel, indicating an elevated risk of forest fires.
+While a familiar RGB image samples only the three spectral bands associated with the colors red, green, and blue in the visible spectra to form an image, a hyperspectral imager uses diffraction to sample a continuous range of spectral bands, including those falling outside of the visible spectrum. This is useful for many tasks such as environmental monitoring because hyperspectral images can account for characteristics of the data that would not exist in an RGB image. For example, the chlorophyll in vegetation absorbs most visible light, but its reflectance changes rapidly near the infrared range of the spectrum. This phenomenon is called the 'red edge', and makes identifying vegetation relatively straightforward using hyperspectral imaging. For our project, we are seeking to leverage these advantages to identify forest regions with an adbundance of ground fuel, which indicates an elevated risk of forest fires.
 
 \begin{figure}[ht]
 \centering
@@ -86,12 +86,13 @@ While a familiar RGB image samples only the three spectral bands associated with
 \end{figure}
 
 
-As a result of the continuous sampling of the spectrum, hyperspectral images contain much more data than a traditional image. The sensor we are using collects data on 1608 color channels per pixel compared to the 3 channels of an RGB image. While binning can reduce the number of channels we utilize and size of our data as a result, the sheer quantity of hyperspectral data is a major obstacle to its effective analysis.
+As a result of the continuous sampling of the spectrum, hyperspectral images contain much more data than a traditional image. The sensor we are using collects data on 1608 color channels for each pixel compared to the 3 channels of an RGB image. While binning can reduce the number of channels we utilize and size of our data as a result, the sheer quantity of hyperspectral data is a major obstacle to its effective analysis.
 
 \subsection{Real Time Processing}
-Traditionally, hyperspectral data is captured in the field and returned to a lab for processing. This is process can be tedious and long due to the inherently large size of hyperspectral data -- the captured data may be many gigabytes or even terabytes in size, meaning that the processing stage can take days or weeks.\mycomment{Note: is this true??} For time-sensitive environmental tasks, it would be preferable to process data as the sensor receives it. This would allows field workers to make utilize data to make decisions as they receive it. For example, if the task is classifying which areas of a forest need to be cleared of ground fuel, workers could fly a drone equipped with a sensor and processor; upon completion, they could immediately begin their task.
+Traditionally, hyperspectral data is captured in the field and returned to a lab for processing. This is process can be length and tedious due to the inherently large size of hyperspectral data -- the captured data may be many gigabytes or even terabytes in size, meaning the processing stage can take days or weeks.\mycomment{Note: is this true??} For time-sensitive environmental tasks, it would be preferable to process data as the sensor receives it. This would allow field workers to utilize data for decisionmaking as they receive it and would eliminate the need to store data persistently. For example, when classifying which areas of a forest need to be cleared of ground fuel, workers could fly a drone equipped with a sensor and real-time processor; upon completion, they could immediately begin clearing debris.
 
-Traditionally, ML classification tasks are done with GPUs due to their parallelism and efficiency at completing low-level operations. For this reason, a strong infrastructure exists for training and running models on a GPU, making their design and implementation relatively easy. Unfortunately, GPUs have one main drawback that makes them unsuitable for our purposes. In the process of completing inference on data received from a sensor, it is necessary use the CPU to write data from the sensor into DRAM, load the data from DRAM into the GPU, complete the processing, and then finally write results back to DRAM. The overhead of writing and loading the data and writing the results is excessive when our goal is to complete inference at the same rate that data is collected. Furthermore, cache misses and refresh rates make the processing speed of a GPU nondeterministic and unpredicatble. Thus we choose to use a field-programmable gate array (FPGA) for our project. An FPGA has the advantage that data can be streamed in directly from the sensor and pipelined deterministically through our model in the fabric of our circuit.
+ML classification tasks are generally done with GPUs due to their parallelism and efficiency at completing arithmetic operations. For this reason, a strong infrastructure exists for training and running models on a GPU, making their design and implementation relatively easy. Unfortunately, GPUs have one main drawback that makes them unsuitable for our purposes. In the process of completing inference on data received from a sensor, it is necessary for the CPU to write data from the sensor into DRAM, load the data from DRAM into the GPU, perform the inference operation, and then finally write results back to DRAM. The overhead of writing and loading the data and writing the results back to DRAM is inordinate when our goal is to complete inference at the same rate that data is collected. Furthermore, cache misses and refresh rates make the processing speed of a GPU nondeterministic and unpredicatble. Thus we choose to use a field-programmable gate array (FPGA) for our project. An FPGA has the advantage that data can be streamed in directly from the sensor and pipelined deterministically through the fabric of our circuit. Therefore the main challenge of this project is to effectively leverage the advantages of custom hardware to achieve rapid inference. While potentially advantageous, this entails many more difficulties and pitfalls than one would typically encounter when using a GPU.
+
 
 % CPU/GPU processing diagram
 \begin{figure}[ht]
@@ -121,7 +122,7 @@ Traditionally, ML classification tasks are done with GPUs due to their paralleli
   \draw[arrow] ([yshift=-20pt]dram.west) -- ([yshift=-20pt]gpu.east) node[midway, above, textnode] {read results};
 
 \end{tikzpicture}
-\caption{Latency overhead of a GPU and CPU computational model}
+\caption{Latency overhead of using a GPU for computation}
 \label{fig:gpu-diagram}
 \end{figure}
 
@@ -171,17 +172,17 @@ Traditionally, ML classification tasks are done with GPUs due to their paralleli
   \draw[->] (c23) -- (c33);
 
 \end{tikzpicture}
-\caption{Lack of overhead of an FPGA data processing stream}
+\caption{Lack of latency overhead of an FPGA inference stream}
 \label{fig:fpgadiagram}
 \end{figure}
 
-% Talk about the difficulties of FPGA implementation here and what we need to consider (hardware design, customly programmed circuit, etc.)
-% Discuss FPGA and GPU.
-
 \subsection{Model Architectures and Considerations}
-Achieving real time hyperspectral image processing requires not just efficient hardware design, but also consideration of the model architectures that will work most effectively on an FPGA. Because of our control over hardware and usage of pipelining and fixed data types, we might be able to achieve latency improvements at the marginal expense of model accuracy. Furthermore, we can't rely on traditional wisdom regarding runtime on a GPU. Finally, we aren't concerned about the training time of our model. We can accept an excessively long model training time if it results in latency performance improvement since the true bottleneck to the success of the project is in inference latency and the hardware limitations we are working with to achieve it. In comparison, training is relatively easy to do and can be done with many more resources, including GPUs, with no issues.
+Achieving real time hyperspectral image processing requires not just efficient hardware design, but also consideration of the model architectures that will work most effectively on an FPGA. Because of our control over hardware
+\mycomment{Note: not sure what I wanted to say here and usage of pipelining and fixed data types},
+we might be able to achieve latency improvements at the marginal expense of model accuracy. Furthermore, we can't rely on conventional wisdom regarding runtime on a GPU and we aren't concerned about the training time of our model. We can accept an excessively long model training time if it results in inference runtime improvement since the true bottleneck to the success of the project is in inference latency. In comparison, training is largely irrelevant and can be done with many more resources without issue.
+% If this isn't clear in the paper, I should make it clear that we are able to train on GPUs with no problem
 
-It is also necessary to consider the memory usage of our model. A convolutional neural network (CNN) that needs to store a large amount of data for its kernel passthrough in RAM is inefficient because of the latency involved in storing and accessing that memory. The memory could be stored in local static FPGA memory\mycomment{what is a better name for this?}, but only so much of that memory is available and it is also necessary to use it to store model weights. We could also pipeline data from DRAM in such a way that there is no latency overhead involved in accessing it, but this adds additional complexity to our hardware design and implementation. Thus we would like to design and use a model that is fast, accurate, small, and leverages the computational advantages of a programmable circuit.
+It is also necessary to consider the memory usage of our model. A convolutional neural network (CNN) that needs to store a large amount of data in DRAM for its kernel passthrough is inefficient because of the latency involved in storing and accessing that memory. The memory could be stored in local static FPGA memory\mycomment{what is a better name for this?}, but only so much of that memory is available and it is also necessary to use it to store model weights. We could attempt to pipeline data from DRAM in such a way that there is no latency overhead involved in accessing it, but this adds additional complexity to our hardware design and implementation. Thus we would like to design and use a model that is fast, accurate, small, and leverages the computational advantages of a programmable circuit.
 
 \subsection{Kolmogorov-Arnold Networks}
 A Kolmorgorov-Arnold Network (KAN) is a type of neural network that directly learns nonlinear activation functions between each layer of the network rather than learning weights for linear transformations and applying a fixed nonlinear activation function between each layer \cite{kan}.
@@ -192,7 +193,7 @@ A Kolmorgorov-Arnold Network (KAN) is a type of neural network that directly lea
 \caption{A visualization of the differences between a KAN and traditional MLP \cite{kan}}
 \end{figure}
 
-In general KANs perform similarly to multilayer-perceptron networks (MLPs) on most tasks and whether they will find widespread use is still largely unknown given their extremely recent development in the field of machine learning. However, for us they have an extremely appealing property: We can achieve latency improvements by encoding their nonlinear functions as lookup tables within the fabric of our FPGA. What this means is that for a given nonlinear function over some fixed domain (note that this domain is determined based on the inputs the function sees during training -- thus it shifts to properly accomodate incoming data), we can choose some granularity for a mesh, calculate outputs across that mesh, and then store those results in a lookup table. Then for some input, we can interpolate between the outputs within our lookup table to determine an approximate result. Because the KAN is composed entirely of nonlinear activation functions, this extremely fast lookup process encompasses the entirety of model inference, potentially granting significant speed improvements within the fabric of our FPGA.
+KANs generally perform similarly to multilayer-perceptron networks (MLPs) on most tasks; whether they will find widespread use is still largely unknown given their recent development in the field of machine learning. However, for us they have an extremely appealing property: We can achieve performance improvements by encoding their nonlinear functions as lookup tables within the fabric of our FPGA. What this means is that for a given nonlinear function over some fixed domain (note that this domain is determined based on the inputs the function sees during training -- thus it shifts to properly accomodate incoming data), we can choose some granularity for a mesh, calculate outputs across that mesh, and then store those results in a lookup table. Then for some input, we can interpolate between the entries of our lookup table to determine an approximate result. Because the KAN is composed entirely of nonlinear activation functions, this extremely fast lookup process encompasses the entirety of model inference, potentially granting significant speed improvements within the fabric of our FPGA.
 
 \begin{figure}[H]
 % No centering because the label naturally pushes to the right
@@ -253,7 +254,7 @@ In general, the lookup tables for a KAN require a significant amount of memory. 
 % Check how that other guy wrote about the work he actually did. Not exactly sure what tone to take 
 At the start of the work, it was important to do performance benchmarking on existing accurate hyperspectral vision models in order to calibrate our expectations of the kind of workload we would encounter when doing real-time inference. We used a previous paper and model created by researchers at Montana State University as our CNN benchmark \cite{Morales_2021} \cite{rs13183649}. Their code uses binning and many convolutional layers to classify pixels of the well known Indian Pines Dataset.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[scale=0.2]{cnn_arch.png}
 \caption{Visualization of the layers of the CNN model \cite{dirk-presentation}}
