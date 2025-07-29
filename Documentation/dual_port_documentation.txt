@@ -1,9 +1,10 @@
----- Begin the project
+---- Beginning the project
 1. Navigate to $proj_home/<project>/hardware/xilinx-kv260-startkit-2024.1
 2. Open a .xpr file for a project with vivado (vivado xilinx-kv260-starterkit-2024.1.xpr). Blank project. Note this was the project that already existed by following the Hello World documentation previously.
 3. Ensure that the language is VHDL form tools->settings
 4. From the add command in the diagram interface, add first an AXI BRAM controller
 5. Using the same add command, add the a Block Memory Generator
+----
 
 ---- Modifying Settings
 1. Double click the blk_mem_gen (the generator you added)
@@ -23,8 +24,9 @@
 2. Change protocol to AXI4
 3. Change data width to 32 (to match the memory controller)
 4. For us memory depth was 8192 and unmodifable. This will be fine since generator width is 4096, but if you can change this to 4096 to match the memory controller, do it
-5. Set number of BRAM interfaces to 1
-6. Change enable ECC to No
+5. Note that for some reaon, this changed later for us without having done anything to change it
+6. Set number of BRAM interfaces to 1
+7. Change enable ECC to No
 ----
 1. Copy paste the now modified axi_bram_ctrl_0 to make another one (for the sake of having two seperate drivers)
 ----
@@ -44,6 +46,7 @@
 2. On axi_bram_ctrl_0, connect BRAM_PORTA to BRAM_PORTA on blk_mem_gen0. On axi_bram_ctrl1, connect BRAM_PORTA to BRAM_PORTB on blk_mem_gen0.
 ----
 Save the file (with file-> save block design)
+----
 
 ---- Create custom addresses
 1. In the address editor (instead of the diagram section) right click both axi_bram_ctrl_0/S_AXI and axi_bram_ctrl_1/S_AXI and assign them. They will be automatically assigned. Edit the base addresses of each to be as desired (for us this is 0x0010_0000_0000 and 0x0030_0000_0000).
@@ -63,11 +66,15 @@ In particular, navigate to section 6: Vivado Base Hardware Project and export th
 
 If you're using an ubuntu root fs, you may have to rename it, boot from the petalinux rootfs, (following instructions in section 13), use the xmutil command, and then move back to using the ubuntu rootfs. This is because xmutil won't be available on ubuntu.
 
-Stuff about install_driver for vivado within petalinux directory structure. Make sure you have passthrough to the VM. Disconnect and reconnect the USB
-Open vivado to the project.
-Under open hardware manager, select open target and autoconnect. 
-Under open hardware manager, select program device and the device. Do this before running any drivers (it configures the hardare properly). Make sure you have the proper .bit file (Can check the date of it)
+Now do this:
+1. cd /opt/Xilinx/Vivado/2024.1/data/xicom/cable_drivers/lin64/install_script/install_drivers/
+sudo ./install_drivers
+2. Make sure passthrough to the VM is enabled for your USB, and unplug and replug to the USB.
+3. Open vivado to the project.
+4. Under open hardware manager, select open target and autoconnect. 
+5. Under open hardware manager, select program device and the device. Do this before running any drivers (it configures the hardware properly). Make sure you have the proper .bit file (Can check the date of it if you want)
 Now in theory, writing and reading from your existing device tree nodes will work properly.
 
 
-Note: depth of the two bram controllers is 1024 and unchangeable which means only (1024 bytes is usable).
+Note: depth of the two bram controllers is 1024 and unchangeable which means only 1024 bytes is usable as far as I understand.
+To see what a properly setup vivado setup (in terms of connections, not setttings), view the picture in this directory.
