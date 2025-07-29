@@ -1,4 +1,4 @@
-#### Overview:
+## Overview:
 
 For the sake of collecting the outputs for the lookup tables, it is necessary to make a modified version of the .forward function inside of KANLayer.py in the KAN library. The only difference is that we do not do y = torch.sum(y, dim=1). This is because that gives us the summed output, but we want to retain the outputs for each activation before summing. The easiest way to do this is to simply copy the function inside of the library, modify it by removing that line, and rename it to something usable (such as act_forward or perhaps something more expressive).
 
@@ -9,7 +9,7 @@ Note that right now I have no garbage collection for dynamic C memory. I claim t
 The forward function with a table size of 4096 takes 0.00085-0.00087 seconds to run in C (from the start of the forward function to the end) for a single sample on my CPU. I ran the test 5 times and all of them fell in this range. Note that the model this is tested on has dimensions [200, 32, 32, 32, 16]. This is with the following CPU specs: CPU: 12th Gen Intel(R) Core(TM) i7-1260P (16) @ 4.70 GHz.
 
 
-#### Usage Instructions:
+## Usage Instructions:
 
 Currently build_kan.py is used to build the C library, kan_test.py is used to actually use the library and perform forward computation, and test_kan.py is used purely for testing. Thus python build_kan.py && python kan_test.py is sufficient for running it currently. The library requirements are included in the requirements.txt in the upper level of this directory.
 
