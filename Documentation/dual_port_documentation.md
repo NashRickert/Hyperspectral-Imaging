@@ -1,4 +1,4 @@
----- Beginning the project
+### Beginning the project
 1. Navigate to $proj_home/<project>/hardware/xilinx-kv260-startkit-2024.1
 2. Open a .xpr file for a project with vivado (vivado xilinx-kv260-starterkit-2024.1.xpr). Blank project. Note this was the project that already existed by following the Hello World documentation previously.
 3. Ensure that the language is VHDL form tools->settings
@@ -6,7 +6,7 @@
 5. Using the same add command, add the a Block Memory Generator
 ----
 
----- Modifying Settings
+### Modifying Settings
 1. Double click the blk_mem_gen (the generator you added)
 2. Under basic, change the mode to standalone.
 3. Change the memory type to uram
@@ -38,7 +38,7 @@
 2. Go to clock configuration -> output clocks -> low power domain clocks -> PL fabric clocks. Then you should enable PL0, PL1 and set the requested freq to the max (which is 100). Only the first one is strictly necessary, the second may be useful for debugging.
 3. In PS-PL config, go to general. Turn fabric reset enable on. Set the number of fabric resets to 1.
 
----- Establish Connections
+### Establish Connections
 1. Select and then right click the pl_clk0 device on the MPSoC (or whatever your exported clock is). Select the make connection option. Select s_axl_aclk from both bram_ctrl0 and bram_ctrl1 and also select aclk from smart_connect0. Also select max_hpm0_fpd_aclk from zynq_ultra_ps_e_0. For our instructions so far, this should correspond to all available options.
 2. Also go to make connection for pl_resetn0. Connect to the same clocks as before for the smart connect and both BRAM controllers.
 ----
@@ -48,12 +48,12 @@
 Save the file (with file-> save block design)
 ----
 
----- Create custom addresses
+### Create custom addresses
 1. In the address editor (instead of the diagram section) right click both axi_bram_ctrl_0/S_AXI and axi_bram_ctrl_1/S_AXI and assign them. They will be automatically assigned. Edit the base addresses of each to be as desired (for us this is 0x0010_0000_0000 and 0x0030_0000_0000).
 2. Also change the range of each of these to 4k (4096 bytes) which corresponds to the other depths we're using.
 ----
 
----- Generate Results and Export
+### Generate Results and Export
 Confirm the project wrapper in the sources section is right. If it isn't, right click on the block design file, click create HDL wrapper, and delete the old one. Make sure the new one is at the top level of the hierarchy.
 ----
 Save the file
