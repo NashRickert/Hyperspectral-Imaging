@@ -26,7 +26,7 @@ struct lkup_tbl {
     float xmin;              // x val associated with table[0]
     float xmax;              // x val associated with table[TBL_SIZE - 1]
     float xdist;             // dist between x values. Roughly (xmax - xmin) / TBL_SIZE
-    float inv_xdist;         // the recipricol of xdist for division
+    float inv_xdist;         // the reciprocal of xdist for division
     float ymin;
     float ymax;
 };

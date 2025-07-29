@@ -9,6 +9,7 @@ temp
 CNN
 Math
 *.log
+*\.bak\d$
 
 # LaTeX temporary files and output
 *.aux
