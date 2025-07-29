@@ -113,8 +113,6 @@ def run_clustering(z, reshape=True):
     print(kmeans.cluster_centers_)
 
     
-
-    
 # This loop is used to instantiate the lookup tables for the model by looping through each layer
 for i, func in enumerate(model.act_fun):
     # Compute the table values

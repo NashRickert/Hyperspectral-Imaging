@@ -50,8 +50,6 @@ struct node {
     struct layer *next_layer;   // This points to the next layer
 };
 
-// TODO: I was thinking about whether I need a special node or layer for the final layer to know that we should get our outpute?
-
 struct layer {
     struct node *nodes;   // The act_funcs that compose this layer
     int len;                 // Len of above buffer

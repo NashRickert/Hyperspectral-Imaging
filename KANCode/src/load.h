@@ -31,13 +31,8 @@ struct lkup_tbl {
     float ymax;
 };
 
+// Kind of a silly struct now. It used to be defined differently
 struct act_fun {
-    // Note: These fields are unnecessary now because they are included in the node struct
-    /* int *targets;         // The indexes of act_fun in the next layer that this act_fun passes vals to */
-    /*                       // (model might not be fully connected) */
-    /* int tgt_len;          // len of targets */
-    /* bool fully_connected; // if true, ignore above fields and treat as if targets == all */
-    /* struct adder_tree tree;    // The adder tree storing inputs to this function */
     struct lkup_tbl table;      // The lookup table associated with this function
 };
 

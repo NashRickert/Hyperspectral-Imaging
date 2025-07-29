@@ -11,7 +11,7 @@ The forward function with a table size of 4096 takes 0.00085-0.00087 seconds to 
 
 ## Usage Instructions:
 
-Currently build_kan.py is used to build the C library, kan_test.py is used to actually use the library and perform forward computation, and test_kan.py is used purely for testing. Thus python build_kan.py && python kan_test.py is sufficient for running it currently. The library requirements are included in the requirements.txt in the upper level of this directory.
+Currently build_kan.py is used to build the C library, kan_test.py is used to actually use the library and perform forward computation, and test_kan.py is used purely for testing. Thus python build_kan.py && python kan_test.py is sufficient for running it currently. The library requirements are included in the requirements.txt in the upper level of this directory. KAN.py contains the KAN implementation made by Dirk (with some modifications to hyperparameters to make them more reasonable) and writes the trained model to temp_model.pt
 
 The way the code works is to first construct and then run forward inference on an existing python KAN model through the usage of lookup tables. We use CFFI API mode to interface with the C code. Documentation can be found here https://cffi.readthedocs.io/en/latest/using.html (pay particular attention to the discussion of ownership and lifetimes -- this is important to understand).
 

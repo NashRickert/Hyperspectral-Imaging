@@ -99,6 +99,12 @@ static void propogate(struct layer *layer) {
         for (int j = 0; j < node->len; j++) {
             int target = node->targets[j];
             // Should probably use target here for fully-connected agnostic implementation
+            // Note that the code should almost definitely be
+            /* struct act_fun *func = &(node->funcs[j]); */
+            /* struct node *targ_node = &(node->next_layer->nodes[target]); */
+            /* struct adder_tree *targ_tree = &targ_node->tree; */
+            // But it's 7/28 rn and I'm reviewing this and I don't want to change it and then have
+            // to test. For fully connected networks it doesn't matter.
             struct act_fun *func = &(node->funcs[j]);
             struct node *targ_node = &(node->next_layer->nodes[j]);
             struct adder_tree *targ_tree = &targ_node->tree;
