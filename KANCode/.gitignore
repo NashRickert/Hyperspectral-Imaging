@@ -1,0 +1,4 @@
+# Each user should have to rebuild the shared library for themselves -- does not belong on github
+_kan.c
+*.so
+_kan.o

@@ -1,4 +1,4 @@
-Instructions:
+#### Instructions:
 
 This C implementation of the python CNN follows the structure of the python code pretty closely without. Our main data structures are tensors, which have a shape and a data array which is a flattened version of the values inside of a tensor in python. They also have utility fields of len (corresponding to the length of data) and prefixes, which is useful for calculating position inside of the data array.
 
