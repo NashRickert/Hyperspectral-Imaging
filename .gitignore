@@ -41,6 +41,10 @@ Math
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+*.nav
+*.vrb
+*.snm
+*.pyg
 latex.out/
 _minted*
 __latexindent_temp/
