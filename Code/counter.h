@@ -17,6 +17,8 @@ extern uint64_t idx_mult_ctr;
 extern uint64_t relu_accum_ctr;
 extern uint64_t relu_ctr;
 
+// These macros increment the counter variables when the do the relevant operations
+// So they basically wrap the operations on addition and multiplication in the program
 #define RELU_ACCUM(a) \
     do { \
         relu_accum_ctr += (a); \

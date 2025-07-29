@@ -15,5 +15,3 @@ uint64_t idx_mult_ctr = 0;
 
 uint64_t relu_accum_ctr = 0;
 uint64_t relu_ctr = 0;
-
-
