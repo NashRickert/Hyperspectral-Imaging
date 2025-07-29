@@ -1,0 +1,1 @@
+### I use these scripts to get my VM and tty ready for developing on the board
