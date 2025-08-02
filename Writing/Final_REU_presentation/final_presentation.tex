@@ -300,6 +300,17 @@
 
 \end{frame}
 
+\begin{frame}{Work Done: Pt 1}
+  \begin{itemize}
+    \item To properly benchmark and implement, we need to shift the models from the high level and opaque python implementations to something lower level.
+    \item To do this, I transferred both the baseline CNN implementation and the KAN to C (for the latter, I created a custom C library that can be called directly from python).
+          \begin{itemize}
+            \item This allows us to do preliminary benchmarking and provides an interface to swap out the computational parts of the classification directly to the FPGAs.
+          \end{itemize}
+
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{More on Lookup Tables}
 
     \begin{itemize}
@@ -363,7 +374,7 @@
     % Note: this is kinda different than the sort of loading for a CNN because the CNN requires we first stream/write data to memory and then load it into the fpga which complicates pipelining and kinda inherently adds latency (at least for a single pixel -- might not affect overall throughput?), but with lookup tables we still stream data directly and just need to pipeline the loading properly so it gets there 
     \begin{itemize}
         \item Thus to do a lookup on our table, we use \texttt{xmin}, \texttt{xmax}, \texttt{xdist}, and \texttt{inv\_xdist} to do linear interpolation between the lookup table entries nearest to our input.
-        \item These lookup tables take up a significant amount of memory -- much more than is available locally in our FPGA.
+        \item These lookup tables take up a significant amount of memory -- much more than is available locally in our FPGA (foreshadowing).
     \end{itemize}
 
 
@@ -372,17 +383,6 @@
 
 % Note that I'm neglecting to mention this work in final presentation, thus should allude to it (?)
 
-% \begin{frame}{Work Done}
-%   \begin{itemize}
-%     \item To properly benchmark and implement, we need to shift the models from the high level and opaque python implementations to something lower level.
-%     \item To do this, I transferred both the baseline CNN implementation and the KAN to C (for the latter, I created a custom C library that can be called directly from python).
-%           \begin{itemize}
-%             \item This allows us to do preliminary benchmarking and provides an interface to swap out the computational parts of the classification directly to the FPGAs.
-%             \item This process will likely form the basis of the rest of my work at the REU.
-%           \end{itemize}
-
-%   \end{itemize}
-% \end{frame}
 
 
 % Additional Slides:
@@ -475,7 +475,12 @@
 \end{frame}
 
 \begin{frame}{Device Driver Implementation}
-    Write this when done, or scrap it if I get cooked :(
+    \begin{itemize}
+        \item My driver combines elements of both a platform driver and a block driver (specifically a block ram-disk driver).
+        \item Fabric design:
+    \end{itemize}
+    \centering
+    \includegraphics[scale=0.4]{fpga_prog_img.png}
 
 \end{frame}
 
@@ -522,10 +527,14 @@
 
 \begin{frame}{Acknowledgements}
     \begin{itemize}
-        \item This material is based upon work supported by the National Science Foundation under Grant No. 2349091.
         \item I would like to acknowledge my PI Ross Snider for the direction and assistance he has provided on the project.
         \item I would also like to thank Nat Sweeney, Zackery Backman, and Dirk Kaiser for the work that they have done and continue to do on the project.
         \item And a special thank you to my peers in the REU program that have made this summer fun and memorable for me, and for the support and encouragement they have provided throughout the summer.
+        \begin{itemize}
+            \item And especially \textbf{Isabel Garcia} for reviewing my final report.
+        \end{itemize}
+        \scriptsize
+        \item This material is based upon work supported by the National Science Foundation under Grant No. 2349091.
     \end{itemize}
 \end{frame}
 

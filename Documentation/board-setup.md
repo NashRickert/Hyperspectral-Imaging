@@ -59,16 +59,17 @@ My rules.v4 looked like this when all was said and done:
 
 With the ubuntu rootfs installed, I was no longer able to connect through SSH anymore from the host machine until I ran these commands on my host machine:
 
-
 sudo ip addr add 192.168.2.1/24 dev enp44s0
 
 sudo ip link set enp44s0 up
 
-Then I could connect with nash@192.168.2.20. Note this is not persistent across reboots -- I recommend adding it to some script that you run everytime you want to connect after a fresh reboot (in this script I also disabled kvm so I could connect to the VM, opened minicom, etc.). ip route or route -n should show you some results related to this (?) (or perhaps results related to the iptables commands). I am relatively confident that there is no need to take action on the device or VM side to make this work, but I could be wrong. If you are not immediately able to ssh from host to device, then running ip addr show on the device and host and showing the results to an llm will likely let it give you a correct result to solve the problem if my instructions do not do it for you.
+Then I could connect with nash@192.168.2.20. Note this is not persistent across reboots -- I recommend adding it to some script that you run everytime you want to connect after a fresh reboot (in this script I also disabled kvm so I could connect to the VM, opened minicom, etc.). ip route or route -n should show you some results related to this (?) (or perhaps results related to the iptables commands). I am relatively confident that there is no need to take action on the device or VM side to make this work, but I could be wrong. If you are not immediately able to ssh from host to device, then running ip addr show on the device and host and showing the results to an LLM will likely get it to give you a correct result to solve the problem if my instructions do not do it for you.
 I believe but would not swear that 192.168.2.1/24 can be any static ip address. enp44s0 should be the name of the ethernet connection when running ip addr show on the host machine.
 
 
 #### Getting Kernel Headers
+
+##### Note this seems unnecessary for compiling a module based on future work done. Refer to the documentation in driver-development.md. The instructions remain in case someone wants them.
 
 To get kernel headers, edit the project-spec/meta-user/conf/user-rootfsconfig file.
 
@@ -114,7 +115,7 @@ It may be useful to know that your kernel source code is inside of <project>/bui
 
 https://docs.amd.com/r/en-US/ug1144-petalinux-tools-reference-guide/Configuring-Device-Tree
 
-As specified here, add the nodes you want to <project>/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dsti
+As specified here, add the nodes you want to <project>/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
 Then run petalinux-build. Your stuff should end up inside of <project>/images/linux/system.dtb
 
 Note that if you set up the servers properly according to the documentation from before, the new system.dtb should be correctly placed to take effect when you boot your board. Reboot and do ls /proc/device-tree to see the new driver entries and make sure it is working properly
@@ -123,10 +124,14 @@ You can also decompile the system.dtb and check that your new entries are there 
 dtc -I dtb -O dts -o ~/temp/out.dts images/linux/system.dtb
 cat ~/temp/out.dts | grep "<name of driver>"
 
+The entries that I added will be visible in the system-user.dtsi file in this directory.
+
 
 #### Getting compile_commands.json for doing module development:
 
-Odds are you'll want a compile_commands.json file so you can use an LSP while doing module development. This is a bit trickier than usual because of the fact that we used petalinux to build our kernel. In fact I was kinda tweaking out about it, as an aside. However as with the previous things, petalinux makes it easy if (and only if) you know what you're doing. 
+Note that this ended up being enough of a headache that I didn't use an LSP, so I cannot confirm for certain that this works.
+
+Odds are you'll want a compile_commands.json file so you can use an LSP while doing module development. This is a bit trickier than usual because of the fact that we used petalinux to build our kernel. As with the previous things, petalinux makes it easy if (and only if) you know what you're doing. 
 
 Step 1: Install bear on your VM. 
 
@@ -144,23 +149,18 @@ petalinux-devtool build linux-xlnx -c
 
 bear petalinux-devtool build linux-xlnx
 
-If you're lucky you should have a compile_commands.json file that looks right. Now copy that directory somewhere it can be useful (or move the compile_commands.json file and have it point to the directory)
+If you're lucky you should have a compile_commands.json file that looks right. Now copy that directory somewhere it can be useful (or move the compile_commands.json file and have it point to the directory, or have a symlink compile_commands.json that points to the one inside the directory). All the paths are absolute I think, so any movement should be fine.
 
-Note: Run petalinux-devtool reset linux-xlnx when you're done because otherwise it screws up petalinux-build (petalinux bug?). It should keep the directory and compile commands intact though.
+Note: Run petalinux-devtool reset linux-xlnx when you're done because otherwise it screws up petalinux-build (petalinux bug?). I thought this would keep the directory intact, but it appears it does not, so take that into account when deciding how to make use of compile_commands.json
 
-Remark: The paths inside of the compile_commands.json only work inside of the VM. One possible solution to this is to develop on the VM with a symlink to the compile_commands.json file from your project directory. Then because the file is shared across the NFS, you can deploy it from the board.
-
-Remark: petalinux reminds me a bit of using nixos except I actually like it better. But similar documentation situation.
-
-
-
+Remark: The paths inside of the compile_commands.json only work inside of the VM. This is likely where you want to actually write your driver anyways so it should be fine, but make note of this. 
 
 
 ---------------------
 ### AI instructions for Debootstrap
 
 * Link to AI discussion: https://grok.com/share/bGVnYWN5_f7572eb6-0d1d-450f-9eea-078103de4769
-* Here is a transcript of the AI discussion about how to complete stage 2 of debootstrap. Note that this assumes stage 1 is complete, but that should be relatively easy with existing online documentation. Note this may have formatting errors, but should give an idea of the directions.
+* Here is a transcript of the AI discussion about how to complete stage 2 of debootstrap. Note that this assumes stage 1 is complete, but that should be relatively easy with existing online documentation. Note this may have formatting errors, but should give an idea of the directions. Make note of the use of qemu and chroot.
 
 
 

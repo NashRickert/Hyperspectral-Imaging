@@ -1,0 +1,48 @@
+/include/ "system-conf.dtsi"
+/ {
+
+
+fclk0:fclk0 {
+   status = "okay";
+   compatible = "xlnx,fclk";
+   clocks = <0x04 0x47>;
+   phandle = <0xa5>;
+};
+
+fclk1 {
+   status = "okay";
+   compatible = "xlnx,fclk";
+   clocks = <0x04 0x48>;
+   phandle = <0xa6>;
+};
+
+fclk2 {
+   status = "okay";
+   compatible = "xlnx,fclk";
+   clocks = <0x04 0x49>;
+   phandle = <0xa7>;
+};
+
+fclk3 {
+   status = "okay";
+   compatible = "xlnx,fclk";
+   clocks = <0x04 0x4a>;
+   phandle = <0xa8>;
+};
+
+/* Note: entries correct because address-cells = size-cells = 2 */
+/* These are the entries we added */
+
+dpsram_port_a: dpsram-port-a@1000000000 {
+compatible = "xlnx,dpsram-port-a";
+reg = <0x10 0x00000000 0x0 0x4000>;  /* 0x0010_0000_0000, 16384 bytes */
+status = "okay";
+};
+
+dpsram_port_b: dpsram-port-b@3000000000 {
+compatible = "xlnx,dpsram-port-b";
+reg = <0x30 0x00000000 0x0 0x4000>;  /* 0x0030_0000_0000, 16384 bytes */
+status = "okay";
+};
+
+};
