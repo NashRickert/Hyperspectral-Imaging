@@ -45,7 +45,13 @@ This is what my Makefile looked like:
 
 #### Important Note on Devshell Aborting
 
-I got some significant issues with devshell aborting either immediately after entering or after the first command I would run. This for me was due to path mismatches in my NSF server where the tracked files ended out of sync for some reason. The way I resolved this was by navigating to /opt/Xilinx/Projects/KV260_Base_PetaLinux/build/tmp/work/xilinx_k26_kv-xilinx-linux/linux-xlnx/6.6.10-xilinx-v2024.1+gitAUTOINC+3af4295e00-r0/pseudo and running rm *. This deleted the database caches that were causing issues. I also ran this while the board was not powered up so the NFS server wasn't running at the moment, but I don't think this helped anything since I still got the issue in this setting until I ran the rm command. But I figured I should mention it. There was a previous point where I would sometimes get aborted but not always (perhaps based on board/vm synchrocity), but at a certain point it was happening everytime until I solved it.
+I got some significant issues with devshell aborting either immediately after entering or after the first command I would run. This for me was due to path mismatches in my NSF server where the tracked files ended out of sync for some reason.
+
+The way I resolved this was by navigating to /opt/Xilinx/Projects/KV260_Base_PetaLinux/build/tmp/work/xilinx_k26_kv-xilinx-linux/linux-xlnx/6.6.10-xilinx-v2024.1+gitAUTOINC+3af4295e00-r0/pseudo and running rm *. This deleted the database caches that were causing issues.
+
+I also ran the devshell while the board was not powered up so the NFS server wasn't running at the moment, but I don't think this helped anything since I still got the issue. There was a previous point where I would sometimes get aborted but not always (perhaps based on board/vm synchrocity), but at a certain point it was happening everytime until I solved it.
+
+This also means that you should do your development on the VM, not the shared NFS. The reason to use the VM instead of the board is of course so that you can point to your headers and be in the devshell environment.
 
 #### Important Note on 2 drivers:
 
